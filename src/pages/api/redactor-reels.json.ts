@@ -25,45 +25,42 @@ function shortcodeOf(reelUrl: string): string | null {
   return reelUrl.match(/\/reels?\/([^/]+)\/?/)?.[1] ?? null;
 }
 
+const LIMIT = 50;
+// Los reels van quedando más atrás en el feed con el tiempo (ya se ha visto
+// que a los pocos días de publicados superan las primeras 50-300
+// publicaciones) — se lanzan en paralelo hasta esta profundidad en vez de
+// paginar secuencialmente, para no acumular la latencia de ~20 peticiones
+// seguidas en cada visita a la home.
+const MAX_PAGES = 20; // hasta 1000 posts de profundidad
+
+async function fetchPage(offset: number): Promise<InstagramApiPost[]> {
+  try {
+    const res = await fetch(`${API_BASE}/instagram/posts?limit=${LIMIT}&offset=${offset}`);
+    if (!res.ok) return [];
+    const page: InstagramApiPage = await res.json();
+    return page.data;
+  } catch {
+    return [];
+  }
+}
+
 export const GET: APIRoute = async () => {
   const bySlug: Record<string, { mediaUrl: string; thumbnailUrl: string | null }> = {};
 
-  const pending = new Map(
-    Object.entries(REDACTOR_REELS)
-      .map(([slug, reelUrl]) => [slug, shortcodeOf(reelUrl)] as const)
-      .filter((entry): entry is [string, string] => !!entry[1])
-  );
+  const targets = Object.entries(REDACTOR_REELS)
+    .map(([slug, reelUrl]) => [slug, shortcodeOf(reelUrl)] as const)
+    .filter((entry): entry is [string, string] => !!entry[1]);
 
-  const limit = 50;
-  let offset = 0;
-  let hasMore = true;
-  let pages = 0;
+  const offsets = Array.from({ length: MAX_PAGES }, (_, i) => i * LIMIT);
+  const pages = await Promise.all(offsets.map(fetchPage));
 
-  // Los reels que nos interesan son publicaciones recientes, así que deberían
-  // salir en las primeras páginas — con 6 páginas (300 posts) de margen de
-  // sobra sin tener que traer todo el histórico de la cuenta.
-  while (pending.size > 0 && hasMore && pages < 6) {
-    let page: InstagramApiPage;
-    try {
-      const res = await fetch(`${API_BASE}/instagram/posts?limit=${limit}&offset=${offset}`);
-      if (!res.ok) break;
-      page = await res.json();
-    } catch {
-      break;
-    }
-
-    for (const post of page.data) {
-      for (const [slug, shortcode] of pending) {
-        if (post.permalink?.includes(shortcode)) {
-          bySlug[slug] = { mediaUrl: post.mediaUrl, thumbnailUrl: post.thumbnailUrl };
-          pending.delete(slug);
-        }
+  for (const post of pages.flat()) {
+    for (const [slug, shortcode] of targets) {
+      if (bySlug[slug]) continue;
+      if (post.permalink?.includes(shortcode)) {
+        bySlug[slug] = { mediaUrl: post.mediaUrl, thumbnailUrl: post.thumbnailUrl };
       }
     }
-
-    hasMore = page.hasMore;
-    offset += limit;
-    pages++;
   }
 
   return new Response(JSON.stringify(bySlug), {
