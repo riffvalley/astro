@@ -2,6 +2,7 @@
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import '../styles/global.css';
+import { WP_BASE_URL } from '../lib/wordpress';
 
 interface Props {
   seo?: string;
@@ -22,7 +23,7 @@ const { seo, title = 'Riff Valley' } = Astro.props;
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400..800&display=swap" />
-    <link rel="stylesheet" href="https://www.riffvalley.es/wp-includes/css/dist/block-library/style.min.css" />
+    <link rel="stylesheet" href={`${WP_BASE_URL}/wp-includes/css/dist/block-library/style.min.css`} />
     <!-- Atmospheric es oscuro por defecto; .light es la alternativa opt-in -->
     <script is:inline>
       const saved = localStorage.getItem('theme');

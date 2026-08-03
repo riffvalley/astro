@@ -3,7 +3,11 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const WP_GRAPHQL_URL = 'https://www.riffvalley.es/graphql';
+// Configurable para poder migrar WordPress a un subdominio propio
+// (p.ej. wordpress.riffvalley.es) el día que riffvalley.es pase a servir
+// directamente este frontend de Astro, sin tocar código.
+export const WP_BASE_URL = import.meta.env.WP_BASE_URL || 'https://www.riffvalley.es';
+const WP_GRAPHQL_URL = `${WP_BASE_URL}/graphql`;
 
 // Caché en disco (solo modo dev): la paginación completa de posts tarda
 // ~2 minutos, y sin esto se repite en cada reinicio de `astro dev`. Se
@@ -452,7 +456,7 @@ const REDACTOR_SLUGS = Object.keys(REDACTOR_POSTS);
 // adjunto referenciado no resuelve por GraphQL, visto en fucking-stone) —
 // quitar la entrada en cuanto se resuelva del lado de WordPress.
 const REDACTOR_POST_IMAGE_OVERRIDES: Record<string, string> = {
-  'fucking-stone': 'https://www.riffvalley.es/wp-content/uploads/2025/04/Wrath-of-Logarius-Crown-Of-Mortis.jpg',
+  'fucking-stone': `${WP_BASE_URL}/wp-content/uploads/2025/04/Wrath-of-Logarius-Crown-Of-Mortis.jpg`,
 };
 
 // Reels de Instagram por redactor (mismo criterio de slugs que arriba) —
