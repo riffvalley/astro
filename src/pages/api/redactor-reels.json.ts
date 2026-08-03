@@ -1,8 +1,13 @@
-// Endpoint SSR bajo demanda (no prerenderizado): resuelve el mediaUrl real
+// Endpoint SSR bajo demanda (no prerenderizado): resuelve la miniatura real
 // de cada reel de "Redactores" contra la API de Instagram del backend
 // propio. No se puede prerenderizar — el CDN de Instagram firma esas URLs
 // con un token que caduca (horas/días), así que hay que pedirlas frescas en
 // cada visita en vez de guardarlas en el build estático.
+//
+// Solo se usa thumbnailUrl (no mediaUrl): el backend no siempre resuelve el
+// vídeo real del reel, así que en vez de intentar embeberlo se enlaza
+// directamente al reel en Instagram sobre la miniatura — comportamiento
+// uniforme para los 8 redactores en vez de dos rutas según si hay vídeo.
 export const prerender = false;
 
 import type { APIRoute } from 'astro';
@@ -11,7 +16,6 @@ import { REDACTOR_REELS } from '../../lib/wordpress';
 
 interface InstagramApiPost {
   mediaType: string;
-  mediaUrl: string;
   thumbnailUrl: string | null;
   permalink: string;
 }
@@ -45,7 +49,7 @@ async function fetchPage(offset: number): Promise<InstagramApiPost[]> {
 }
 
 export const GET: APIRoute = async () => {
-  const bySlug: Record<string, { mediaUrl: string; thumbnailUrl: string | null }> = {};
+  const bySlug: Record<string, { thumbnailUrl: string | null }> = {};
 
   const targets = Object.entries(REDACTOR_REELS)
     .map(([slug, reelUrl]) => [slug, shortcodeOf(reelUrl)] as const)
@@ -58,7 +62,7 @@ export const GET: APIRoute = async () => {
     for (const [slug, shortcode] of targets) {
       if (bySlug[slug]) continue;
       if (post.permalink?.includes(shortcode)) {
-        bySlug[slug] = { mediaUrl: post.mediaUrl, thumbnailUrl: post.thumbnailUrl };
+        bySlug[slug] = { thumbnailUrl: post.thumbnailUrl };
       }
     }
   }
@@ -66,8 +70,8 @@ export const GET: APIRoute = async () => {
   return new Response(JSON.stringify(bySlug), {
     headers: {
       'content-type': 'application/json',
-      // Corta vida: el mediaUrl es una URL firmada de Instagram con caducidad
-      // propia, así que no interesa cachearla mucho tiempo.
+      // Corta vida: thumbnailUrl es una URL firmada de Instagram con
+      // caducidad propia, así que no interesa cachearla mucho tiempo.
       'cache-control': 'public, max-age=1800, s-maxage=1800',
     },
   });
