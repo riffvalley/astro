@@ -1,0 +1,86 @@
+---
+---
+
+<div class="spotify-player" id="spotify-player">
+  <p class="spotify-player-hint">Cargando playlist…</p>
+</div>
+
+<script>
+  import { fetchRandomPlaylist, spotifyEmbedUrl } from '../lib/spotify';
+
+  const playerEl = document.getElementById('spotify-player');
+
+  async function loadRandomPlaylist() {
+    if (!playerEl) return;
+
+    try {
+      const playlist = await fetchRandomPlaylist();
+      const embedUrl = spotifyEmbedUrl(playlist.link);
+      if (!embedUrl) throw new Error('missing playlist id');
+
+      const iframe = document.createElement('iframe');
+      iframe.className = 'spotify-player-embed';
+      iframe.src = embedUrl;
+      iframe.width = '100%';
+      iframe.height = '352';
+      iframe.setAttribute('frameborder', '0');
+      iframe.loading = 'lazy';
+      iframe.allow = 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture';
+      iframe.allowFullscreen = true;
+      iframe.title = `Playlist de Spotify: ${playlist.name}`;
+
+      playerEl.replaceChildren(iframe);
+    } catch {
+      playerEl.replaceChildren();
+      const msg = document.createElement('p');
+      msg.className = 'spotify-player-hint spotify-player-hint--error';
+      msg.textContent = 'No se pudo cargar la playlist. ';
+      const retry = document.createElement('button');
+      retry.type = 'button';
+      retry.className = 'spotify-player-retry';
+      retry.textContent = 'Reintentar';
+      retry.addEventListener('click', loadRandomPlaylist);
+      msg.append(retry);
+      playerEl.append(msg);
+    }
+  }
+
+  loadRandomPlaylist();
+</script>
+
+<style>
+  .spotify-player {
+    width: 100%;
+    max-width: 560px;
+    margin: 0 auto;
+    min-height: 352px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .spotify-player-embed {
+    display: block;
+    border-radius: 12px;
+  }
+
+  .spotify-player-hint {
+    margin: 0;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--color-muted);
+  }
+
+  .spotify-player-hint--error { color: var(--color-ink-2); }
+
+  .spotify-player-retry {
+    border: none;
+    background: none;
+    padding: 0;
+    margin-left: 0.25rem;
+    color: var(--color-accent);
+    font-weight: 700;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+</style>

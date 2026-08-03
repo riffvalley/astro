@@ -1,0 +1,62 @@
+---
+import { calendars } from '../lib/agendaCalendars';
+
+// Suscripción directa por comunidad: el enlace "render?cid=" de Google
+// Calendar abre el diálogo nativo de "¿Añadir este calendario?" sin
+// necesitar ninguna API ni autenticación — es el mismo mecanismo público
+// que usa el botón "+ Google Calendar" que traía el widget antiguo.
+function subscribeUrl(calendarId: string): string {
+  return `https://calendar.google.com/calendar/render?cid=${encodeURIComponent(calendarId)}`;
+}
+---
+
+<div class="gcal-subscribe">
+  <ul class="gcal-list">
+    {calendars.map(cal => (
+      <li>
+        <a href={subscribeUrl(cal.id)} target="_blank" rel="noopener" class="gcal-chip">
+          <span class="gcal-dot" style={`background:${cal.color}`}></span>
+          {cal.name}
+        </a>
+      </li>
+    ))}
+  </ul>
+</div>
+
+<style>
+  .gcal-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .gcal-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.4rem 0.9rem;
+    border-radius: 9999px;
+    background: var(--color-paper-2);
+    border: 1px solid var(--color-rule);
+    color: var(--color-ink-2);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 160ms var(--ease-out, ease), color 160ms var(--ease-out, ease);
+  }
+
+  .gcal-chip:hover {
+    background: var(--color-paper-3);
+    color: var(--color-ink);
+  }
+
+  .gcal-dot {
+    width: 0.6rem;
+    height: 0.6rem;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+</style>

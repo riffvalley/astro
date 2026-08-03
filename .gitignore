@@ -22,3 +22,12 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# Local Netlify folder
+.netlify
+
+# Caché en disco de datos de WordPress (solo modo dev — ver src/lib/wordpress.ts)
+.wp-cache/
+
+# Estado local de Claude Code (sesión/permisos de esta máquina, no config de equipo)
+.claude/

@@ -1,0 +1,50 @@
+---
+import type { Post } from '../lib/wordpress';
+import PostCard from './PostCard.astro';
+
+interface Props {
+  posts: Post[];
+  limit?: number;
+  title?: string;
+}
+
+const { posts, limit = 6, title } = Astro.props;
+const featured = limit ? posts.slice(0, limit) : posts;
+---
+
+<section class="gallery-section">
+  {title && <h2 class="gallery-title">{title}</h2>}
+  <div class="gallery-grid">
+    {featured.map(post => <PostCard post={post} size="md" />)}
+  </div>
+</section>
+
+<style>
+  .gallery-section {
+    max-width: var(--max-width-site, 1280px);
+    margin: 0 auto;
+  }
+
+  .gallery-title {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 1.125rem;
+    letter-spacing: -0.01em;
+    color: var(--color-ink);
+    margin: 0 0 var(--space-md, 1rem);
+  }
+
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-lg, 1.5rem);
+  }
+
+  @media (max-width: 60rem) {
+    .gallery-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+
+  @media (max-width: 30rem) {
+    .gallery-grid { grid-template-columns: 1fr; }
+  }
+</style>

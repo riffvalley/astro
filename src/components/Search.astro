@@ -1,0 +1,245 @@
+---
+---
+
+<button id="search-open" aria-label="Buscar" class="search-btn">
+  <svg class="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M18 10.5a7.5 7.5 0 11-15 0 7.5 7.5 0 0115 0z" />
+  </svg>
+</button>
+
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <svg class="w-5 h-5 shrink-0 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M18 10.5a7.5 7.5 0 11-15 0 7.5 7.5 0 0115 0z" />
+      </svg>
+      <input
+        id="search-input"
+        type="text"
+        placeholder="Type to search or hit ESC to close"
+        autocomplete="off"
+        spellcheck="false"
+      />
+      <button id="search-close" aria-label="Cerrar búsqueda" class="search-close-btn">&times;</button>
+    </div>
+    <ul id="search-results" class="search-results"></ul>
+  </div>
+</div>
+
+<script>
+  type PagefindResult = {
+    data: () => Promise<{ url: string; meta: { title?: string }; excerpt: string }>;
+  };
+  type PagefindModule = {
+    search: (query: string) => Promise<{ results: PagefindResult[] }>;
+  };
+
+  let pagefind: PagefindModule | null = null;
+  let pagefindError = false;
+
+  async function loadPagefind() {
+    if (pagefind || pagefindError) return pagefind;
+    try {
+      const pagefindUrl = `${import.meta.env.BASE_URL}pagefind/pagefind.js`;
+      // @ts-ignore - generated at build time, not present during `astro check`
+      pagefind = await import(/* @vite-ignore */ pagefindUrl);
+    } catch {
+      pagefindError = true;
+    }
+    return pagefind;
+  }
+
+  const openBtn = document.getElementById('search-open');
+  const closeBtn = document.getElementById('search-close');
+  const overlay = document.getElementById('search-overlay');
+  const input = document.getElementById('search-input') as HTMLInputElement | null;
+  const results = document.getElementById('search-results');
+
+  let debounceTimer: ReturnType<typeof setTimeout>;
+
+  function openSearch() {
+    overlay?.removeAttribute('hidden');
+    document.body.style.overflow = 'hidden';
+    input?.focus();
+    loadPagefind();
+  }
+
+  function closeSearch() {
+    overlay?.setAttribute('hidden', '');
+    document.body.style.overflow = '';
+    if (input) input.value = '';
+    if (results) results.innerHTML = '';
+  }
+
+  openBtn?.addEventListener('click', openSearch);
+  closeBtn?.addEventListener('click', closeSearch);
+  overlay?.addEventListener('click', (e) => {
+    if (e.target === overlay) closeSearch();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !overlay?.hasAttribute('hidden')) closeSearch();
+  });
+
+  input?.addEventListener('input', () => {
+    clearTimeout(debounceTimer);
+    const query = input.value.trim();
+
+    if (!query) {
+      if (results) results.innerHTML = '';
+      return;
+    }
+
+    debounceTimer = setTimeout(async () => {
+      const pf = await loadPagefind();
+      if (!results) return;
+
+      if (!pf) {
+        results.innerHTML = '<li class="search-empty">Búsqueda disponible solo en el sitio publicado (ejecuta <code>pnpm build</code>).</li>';
+        return;
+      }
+
+      const { results: hits } = await pf.search(query);
+      if (!hits.length) {
+        results.innerHTML = '<li class="search-empty">Sin resultados.</li>';
+        return;
+      }
+
+      const items = await Promise.all(hits.slice(0, 10).map((hit) => hit.data()));
+      results.innerHTML = items
+        .map(
+          (item) => `
+            <li>
+              <a href="${item.url}">
+                <span class="result-title">${item.meta.title ?? item.url}</span>
+                <span class="result-excerpt">${item.excerpt}</span>
+              </a>
+            </li>
+          `
+        )
+        .join('');
+    }, 200);
+  });
+</script>
+
+<style>
+  .search-btn {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 9999px;
+    border: none;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.85);
+    cursor: pointer;
+    transition: background 120ms var(--ease-out, ease), color 120ms var(--ease-out, ease);
+  }
+
+  .search-btn:hover {
+    background: rgba(255, 255, 255, 0.14);
+    color: #ffffff;
+  }
+
+  .search-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-modal, 400);
+    background: color-mix(in oklch, var(--color-paper) 80%, transparent);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 10vh 20px 20px;
+  }
+
+  .search-panel {
+    width: 100%;
+    max-width: 640px;
+    background: var(--color-paper-2);
+    border: 1px solid var(--color-rule);
+    border-radius: 12px;
+    box-shadow: 0 20px 60px oklch(0% 0 0 / 0.4);
+    overflow: hidden;
+  }
+
+  .search-input-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--color-rule);
+  }
+
+  #search-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 16px;
+    color: var(--color-ink);
+    font-family: var(--font-body);
+  }
+
+  .search-close-btn {
+    border: none;
+    background: transparent;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    color: var(--color-muted);
+    padding: 2px 4px;
+  }
+
+  .search-results {
+    list-style: none;
+    margin: 0;
+    padding: 8px;
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+
+  /* El contenido de la lista se inserta por JS (innerHTML) tras el build,
+     así que los estilos "scoped" de Astro no lo alcanzan: hace falta :global. */
+  .search-results :global(li) {
+    list-style: none;
+  }
+
+  .search-results :global(li a) {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 10px 12px;
+    border-radius: 6px;
+    text-decoration: none;
+    color: var(--color-ink);
+  }
+
+  .search-results :global(li a:hover) {
+    background: var(--color-paper-3);
+  }
+
+  .search-results :global(.result-title) {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 14px;
+  }
+
+  .search-results :global(.result-excerpt) {
+    font-size: 13px;
+    color: var(--color-muted);
+  }
+
+  .search-results :global(.result-excerpt mark) {
+    background: color-mix(in oklch, var(--color-accent) 30%, transparent);
+    color: var(--color-ink);
+    border-radius: 2px;
+  }
+
+  .search-results :global(.search-empty) {
+    padding: 12px;
+    font-size: 14px;
+    color: var(--color-muted);
+  }
+</style>

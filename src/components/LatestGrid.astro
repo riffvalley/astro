@@ -1,0 +1,47 @@
+---
+import type { Post } from '../lib/wordpress';
+import PostCard from './PostCard.astro';
+
+interface Props {
+  posts: Post[];
+}
+
+const { posts } = Astro.props;
+const items = posts.slice(0, 6);
+---
+
+<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+  {items.map((post, i) => (
+    <div class="card-reveal" style={`--i: ${i}`}>
+      <PostCard post={post} size="md" />
+    </div>
+  ))}
+</div>
+
+<style>
+  /* Entrada propia de esta cuadrícula, más marcada que el .reveal genérico
+     del resto de la web: más recorrido vertical y un pequeño escalado, con
+     el mismo rebote que ahora usa el hover de la tarjeta. */
+  .card-reveal {
+    opacity: 0;
+    transform: translateY(20px) scale(0.96);
+    animation: card-reveal 560ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    animation-delay: calc(var(--i, 0) * 80ms);
+  }
+
+  @keyframes card-reveal {
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card-reveal {
+      animation: card-reveal-reduced 150ms linear forwards;
+    }
+    @keyframes card-reveal-reduced {
+      to { opacity: 1; transform: none; }
+    }
+  }
+</style>

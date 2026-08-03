@@ -1,0 +1,193 @@
+---
+const legal = [
+  { label: 'Política de privacidad', href: '/politica-privacidad' },
+  { label: 'Política de cookies', href: '/politica-cookies' },
+  { label: 'Aviso legal', href: '/aviso-legal' },
+];
+---
+
+<footer class="site-footer">
+  <div class="footer-landscape" aria-hidden="true">
+    <img src="/bg-footer-day.png" alt="" class="footer-landscape__image" />
+    <img src="/bg-footer-night.png" alt="" class="footer-landscape__image footer-landscape__night" />
+  </div>
+
+  <div class="footer-inner">
+    <div class="footer-side footer-side--left">
+      <a href="/" class="footer-wordmark" aria-label="Riff Valley">
+        <img src="/LOGO-RIFF-VALLEY.svg" alt="" width="34" height="34" class="footer-logo" />
+        <span class="footer-word">Riff Valley</span>
+      </a>
+      <p class="footer-tagline">Comunidad de música metal, rock, hardcore y mucho más.</p>
+
+      <div class="footer-copyright">
+        <p>© Riff Valley {new Date().getFullYear()}</p>
+        <p>© Fotos de sus respectivos autores y/o dueños. Publicado sin ánimo de lucro.</p>
+      </div>
+    </div>
+
+    <div class="footer-side footer-side--right">
+      <nav aria-label="Legal" class="legal-row">
+        {legal.map((l, i) => (
+          <>
+            {i > 0 && <span class="sep" aria-hidden="true">·</span>}
+            <a href={l.href}>{l.label}</a>
+          </>
+        ))}
+      </nav>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    position: relative;
+    margin-top: var(--space-3xl, 6rem);
+    overflow: hidden;
+  }
+
+  /* Paisaje de valle día/noche, siguiendo el tema real del sitio. El texto se
+     coloca a los lados (sobre las laderas) para evitar el hueco de cielo
+     claro del centro. */
+  .footer-landscape {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .footer-landscape__image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center bottom;
+  }
+
+  .footer-landscape__night {
+    opacity: 0;
+    transition: opacity 2.5s ease-in-out;
+  }
+
+  html:not(.light) .footer-landscape__night {
+    opacity: 1;
+  }
+
+  .site-footer::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient(to bottom, rgba(10, 4, 30, 0.25), rgba(10, 4, 30, 0.5));
+    pointer-events: none;
+  }
+
+  .footer-inner {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 2rem 1.5rem;
+    max-width: var(--max-width-site, 1280px);
+    margin: 0 auto;
+    padding: var(--space-2xl, 4rem) var(--space-lg, 1.5rem) var(--space-lg, 1.5rem);
+  }
+
+  .footer-side {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    min-width: 0;
+  }
+
+  .footer-side--left {
+    align-items: flex-start;
+  }
+
+  .footer-side--right {
+    align-items: flex-end;
+    text-align: right;
+  }
+
+  .footer-wordmark {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    text-decoration: none;
+  }
+
+  .footer-logo {
+    display: block;
+    filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.4));
+  }
+
+  .footer-word {
+    font-family: var(--font-outlier);
+    font-weight: 400;
+    font-size: 1.4rem;
+    letter-spacing: 0.01em;
+    line-height: 1;
+    color: #ffffff;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+  }
+
+  .footer-tagline {
+    margin: 0;
+    max-width: 30ch;
+    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  .legal-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .legal-row a {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.88);
+    text-decoration: none;
+    transition: color 120ms var(--ease-out, ease);
+  }
+
+  .legal-row a:hover {
+    color: #ffffff;
+    text-decoration: underline;
+  }
+
+  .sep { color: rgba(255, 255, 255, 0.4); font-size: 0.75rem; }
+
+  .footer-copyright p {
+    margin: 0;
+    font-size: 0.75rem;
+    letter-spacing: 0.02em;
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  .footer-copyright p + p {
+    margin-top: 0.25rem;
+  }
+
+  @media (max-width: 32rem) {
+    .footer-inner {
+      justify-content: flex-start;
+    }
+
+    .footer-side--right {
+      align-items: flex-start;
+      text-align: left;
+    }
+
+    .legal-row {
+      justify-content: flex-start;
+    }
+  }
+</style>

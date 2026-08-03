@@ -1,0 +1,435 @@
+---
+import Layout from '../layouts/Layout.astro';
+import GoogleCalendarSubscribe from '../components/GoogleCalendarSubscribe.astro';
+---
+
+<Layout title="¿Cómo usar la agenda? – Riff Valley">
+  <div class="guide">
+    <div class="guide-inner">
+      <h1 class="guide-title">¿Cómo usar la agenda de conciertos?</h1>
+      <p class="guide-lede">
+        Un repaso a la <a href="/agenda-conciertos">agenda de conciertos</a>:
+        cómo nos enteramos de los eventos, cómo se lee el calendario, cómo
+        llevártelo a tu propio Google Calendar y cómo avisarnos si falta algo
+        o hay una errata.
+      </p>
+
+      <section class="guide-block">
+        <h2 class="guide-block-title">Cómo enterarte de nuevos conciertos</h2>
+        <p class="guide-block-text">
+          Publicamos todas las giras y festivales de los que nos vamos
+          enterando en <a href="https://t.me/conciertosrockmetal" target="_blank" rel="noopener">nuestro canal de Telegram</a>.
+          Esos mismos eventos son los que alimentan la
+          <a href="/agenda-conciertos">agenda de conciertos en formato calendario</a>,
+          que se construye tanto a partir de lo publicado en Telegram como de
+          las giras que nos pasáis por nuestras redes sociales.
+        </p>
+      </section>
+
+      <section class="guide-block">
+        <h2 class="guide-block-title">Formato de los nombres de los eventos</h2>
+        <p class="guide-block-text">
+          Los conciertos agrupan las bandas del cartel y la localidad entre
+          paréntesis:
+        </p>
+        <pre class="guide-code">Banda 1 + Banda 2 + Banda 3 (Ciudad - PROVINCIA)
+Festival (Ciudad - PROVINCIA)
+
+Ejemplo: ABBATH + TOXIC HOLOCAUST + HELLRIPPER (L'Hospitalet de Llobregat - BARCELONA)</pre>
+        <p class="guide-block-text">
+          Si el nombre de la ciudad coincide con el de la provincia, o se
+          infiere directamente, se omite la provincia:
+        </p>
+        <pre class="guide-code">Banda 1 + Banda 2 + Banda 3 (Ciudad)
+Festival (Ciudad)
+
+Ejemplo: ABBATH + TOXIC HOLOCAUST + HELLRIPPER (Sevilla)</pre>
+        <p class="guide-block-text">
+          Y en localidades donde la ciudad o provincia se conoce por más de
+          un nombre según el idioma, intentamos ser lo más inclusivos
+          posible incluyendo ambas formas:
+        </p>
+        <pre class="guide-code">Banda 1 + Banda 2 + Banda 3 (Ciudad/Ciudad - PROVINCIA/PROVINCIA)
+
+Ejemplo: KOBA LIVE (Abadiño/Abadiano - BIZKAIA/VIZCAYA)</pre>
+      </section>
+
+      <div class="guide-tabs" id="guide-tabs">
+        <div class="guide-tabs-nav" role="tablist">
+          <button type="button" class="guide-tab-btn is-active" data-tab="desktop" role="tab" aria-selected="true">Escritorio</button>
+          <button type="button" class="guide-tab-btn" data-tab="mobile" role="tab" aria-selected="false">Móvil</button>
+        </div>
+
+        <div class="guide-tab-panel" data-panel="desktop">
+          <section class="guide-step">
+            <h2 class="guide-step-title">1. Muévete por mes y año</h2>
+            <p class="guide-step-text">
+              Arriba a la izquierda tienes dos selectores — uno para el mes y otro
+              para el año (2025, 2026 y 2027) — y a la derecha el botón
+              <strong>Filtros</strong>. Cambia cualquiera de los dos selectores y el
+              calendario se actualiza al instante, sin recargar la página.
+            </p>
+            <img src="/agenda-help/toolbar.png" alt="Selectores de mes y año, y botón de Filtros, en la cabecera del calendario" class="guide-shot guide-shot--wide" />
+          </section>
+
+          <section class="guide-step">
+            <h2 class="guide-step-title">2. Lee el mapa de calor</h2>
+            <p class="guide-step-text">
+              Cada día con conciertos muestra una pastilla con el número total. El
+              color va de azul (pocos conciertos ese día) a rojo (muchísimos) — de
+              un vistazo puedes ver qué días están más cargados de la vista mensual.
+            </p>
+            <img src="/agenda-help/grid.png" alt="Cuadrícula del mes con las pastillas de número de conciertos por día, coloreadas de azul a rojo" class="guide-shot guide-shot--wide" />
+          </section>
+
+          <section class="guide-step">
+            <h2 class="guide-step-title">3. Filtra por comunidad autónoma</h2>
+            <p class="guide-step-text">
+              Pulsa <strong>Filtros</strong> para abrir el mapa de España. Cada
+              comunidad tiene su propia casilla y color, con el número de
+              conciertos activos que le corresponden ahora mismo. Puedes
+              desmarcar las que no te interesen, o usar <strong>Marcar todos</strong> /
+              <strong>Desactivar todos</strong> para ir más rápido.
+            </p>
+            <img src="/agenda-help/filters.png" alt="Panel de filtros con el mapa de España y la lista de comunidades autónomas con casillas de color" class="guide-shot guide-shot--wide" />
+          </section>
+
+          <section class="guide-step">
+            <h2 class="guide-step-title">4. Consulta los conciertos de un día</h2>
+            <p class="guide-step-text">
+              Pincha en cualquier día con conciertos para abrir el detalle: la
+              lista completa agrupada por comunidad, con el nombre de la banda o
+              el festival, la localidad y un enlace directo al evento original.
+            </p>
+            <img src="/agenda-help/day-modal.png" alt="Ventana de detalle de un día concreto con la lista de conciertos agrupados por comunidad" class="guide-shot guide-shot--wide" />
+          </section>
+        </div>
+
+        <div class="guide-tab-panel" data-panel="mobile" hidden>
+          <section class="guide-step">
+            <h2 class="guide-step-title">1. Muévete por mes y año</h2>
+            <p class="guide-step-text">
+              Igual que en escritorio: selector de mes, selector de año y el
+              botón de <strong>Filtros</strong>, apilados para que quepan en
+              pantallas estrechas.
+            </p>
+            <div class="guide-shot-placeholder">Captura móvil pendiente</div>
+          </section>
+
+          <section class="guide-step">
+            <h2 class="guide-step-title">2. Lee el mapa de calor</h2>
+            <p class="guide-step-text">
+              El calendario se adapta a una cuadrícula más compacta, pero el
+              mismo código de color (azul → rojo) sigue indicando cuántos
+              conciertos hay cada día.
+            </p>
+            <div class="guide-shot-placeholder">Captura móvil pendiente</div>
+          </section>
+
+          <section class="guide-step">
+            <h2 class="guide-step-title">3. Filtra por comunidad autónoma</h2>
+            <p class="guide-step-text">
+              El panel de filtros se reorganiza en una sola columna para que
+              el mapa y la lista de comunidades quepan sin hacer scroll
+              horizontal.
+            </p>
+            <div class="guide-shot-placeholder">Captura móvil pendiente</div>
+          </section>
+
+          <section class="guide-step">
+            <h2 class="guide-step-title">4. Consulta los conciertos de un día</h2>
+            <p class="guide-step-text">
+              El detalle de un día se abre a pantalla completa, con la misma
+              lista de conciertos agrupados por comunidad.
+            </p>
+            <div class="guide-shot-placeholder">Captura móvil pendiente</div>
+          </section>
+        </div>
+      </div>
+
+      <section class="guide-block">
+        <h2 class="guide-block-title">Suscríbete desde tu Google Calendar</h2>
+        <p class="guide-block-text">
+          Si prefieres tener los conciertos directamente en tu calendario
+          personal, puedes suscribirte a cada comunidad por separado. A
+          partir de ahí, cualquier concierto nuevo que añadamos aparecerá
+          también en tu calendario, sin tener que volver a esta página.
+          Pulsando cada botón se abre directamente el diálogo de Google
+          Calendar para añadir ese calendario al tuyo.
+        </p>
+        <GoogleCalendarSubscribe />
+      </section>
+
+      <section class="guide-block">
+        <h2 class="guide-block-title">Cómo informarnos de eventos nuevos o erratas</h2>
+        <p class="guide-block-text">
+          Como todos somos humanos, es normal que nos dejemos eventos sin poner en el calendario, grupo de Telegram o que incluso lo que publiquemos tenga alguna errata.
+        </p>
+        <p class="guide-block-text">
+          Para facilitarnos un poco la vida (si os apetece jeje) os proponemos que nos digáis los eventos en <a href="https://t.me/riffvalley" target="_blank" rel="noopener">el grupo donde se pueden comentar los eventos de nuestra agenda</a>, o mandar un mensaje a @DanetDuo en Telegram con el siguiente formato:
+        </p>
+
+        <div class="guide-table-wrap">
+          <table class="guide-table">
+            <thead>
+              <tr>
+                <th>Line up</th>
+                <th>Fecha inicio</th>
+                <th>Fecha fin</th>
+                <th>Ciudad</th>
+                <th>Provincia</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Grupo 1 + Grupo 2</td>
+                <td>12/03/24</td>
+                <td>–</td>
+                <td>Vigo</td>
+                <td>Pontevedra</td>
+              </tr>
+              <tr>
+                <td>Grupo 1</td>
+                <td>13/03/24</td>
+                <td>–</td>
+                <td>Santiago de Compostela</td>
+                <td>A Coruña</td>
+              </tr>
+              <tr>
+                <td>NuevoFest</td>
+                <td>25/12/24</td>
+                <td>30/12/24</td>
+                <td>Madrid</td>
+                <td>–</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="guide-table-caption">
+          Los conciertos no hace falta que tengan fecha fin, sólo los festivales y eventos de más de un día. Las ciudades cuyo nombre sea el mismo nombre de la provincia / comunidad tampoco hacen falta 🙂
+        </p>
+
+        <p class="guide-block-text">
+          Obviamente no hace falta que sea una tabla, con que nos lo escribáis de la siguiente manera, nos facilitará muchísimo más las cosas y hará que podamos poblar el calendario mucho más rápido:
+        </p>
+        <pre class="guide-code">Banda 1 + Banda 2 - Fecha inicio - Fecha fin - Ciudad - Provincia</pre>
+
+        <p class="guide-block-text">
+          Igualmente, si no tenéis tiempo o lo que sea, los carteles de las giras de los grupos o cualquier mensaje en cualquier formato es bienvenido. Las erratas igual, con decirnos qué evento está mal y cómo corregirlo lo agradeceremos muchísimo.
+        </p>
+      </section>
+
+      <a href="/agenda-conciertos" class="guide-cta">Ir a la agenda de conciertos →</a>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  const tabsRoot = document.getElementById('guide-tabs');
+  if (tabsRoot) {
+    const buttons = tabsRoot.querySelectorAll<HTMLButtonElement>('.guide-tab-btn');
+    const panels = tabsRoot.querySelectorAll<HTMLElement>('.guide-tab-panel');
+
+    buttons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const target = btn.dataset.tab;
+
+        buttons.forEach(b => {
+          b.classList.toggle('is-active', b === btn);
+          b.setAttribute('aria-selected', b === btn ? 'true' : 'false');
+        });
+
+        panels.forEach(panel => {
+          panel.hidden = panel.dataset.panel !== target;
+        });
+      });
+    });
+  }
+</script>
+
+<style>
+  .guide-inner {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: var(--space-2xl, 4rem) var(--space-lg, 1.5rem) var(--space-3xl, 6rem);
+  }
+
+  .guide-title {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(1.75rem, 3vw + 1rem, 2.75rem);
+    letter-spacing: -0.02em;
+    color: var(--color-ink);
+    margin: 0 0 0.5rem;
+  }
+
+  .guide-lede {
+    max-width: 65ch;
+    color: var(--color-ink-2);
+    line-height: 1.6;
+    margin: 0 0 var(--space-2xl, 4rem);
+  }
+
+  .guide-lede a,
+  .guide-block-text a {
+    color: var(--color-accent);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .guide-block {
+    margin-bottom: var(--space-2xl, 4rem);
+  }
+
+  .guide-block-title {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 1.375rem;
+    letter-spacing: -0.01em;
+    color: var(--color-ink);
+    margin: 0 0 0.6rem;
+  }
+
+  .guide-block-text {
+    max-width: 65ch;
+    color: var(--color-ink-2);
+    line-height: 1.6;
+    margin: 0 0 1rem;
+  }
+
+  .guide-code {
+    display: block;
+    padding: 0.85rem 1rem;
+    border-radius: 10px;
+    background: var(--color-paper-2);
+    border: 1px solid var(--color-rule);
+    color: var(--color-ink-2);
+    font-size: 0.8125rem;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    margin: 0 0 1rem;
+  }
+
+  .guide-table-wrap {
+    overflow-x: auto;
+    margin-bottom: 0.5rem;
+  }
+
+  .guide-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8125rem;
+  }
+
+  .guide-table th,
+  .guide-table td {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--color-rule);
+    text-align: left;
+    color: var(--color-ink-2);
+    white-space: nowrap;
+  }
+
+  .guide-table th {
+    color: var(--color-ink);
+    font-weight: 700;
+    background: var(--color-paper-2);
+  }
+
+  .guide-table-caption {
+    max-width: 65ch;
+    font-size: 0.8125rem;
+    color: var(--color-muted);
+    margin: 0 0 1.25rem;
+  }
+
+  .guide-tabs {
+    margin-bottom: var(--space-2xl, 4rem);
+  }
+
+  .guide-tabs-nav {
+    display: inline-flex;
+    gap: 0.4rem;
+    padding: 0.3rem;
+    border-radius: 9999px;
+    background: var(--color-paper-2);
+    border: 1px solid var(--color-rule);
+    margin-bottom: var(--space-xl, 2.5rem);
+  }
+
+  .guide-tab-btn {
+    border: none;
+    background: none;
+    padding: 0.45rem 1.1rem;
+    border-radius: 9999px;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.875rem;
+    color: var(--color-ink-2);
+    cursor: pointer;
+    transition: background 160ms var(--ease-out, ease), color 160ms var(--ease-out, ease);
+  }
+
+  .guide-tab-btn.is-active {
+    background: var(--color-accent);
+    color: #fff;
+  }
+
+  .guide-step {
+    margin-bottom: var(--space-2xl, 4rem);
+  }
+
+  .guide-step-title {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 1.375rem;
+    letter-spacing: -0.01em;
+    color: var(--color-ink);
+    margin: 0 0 0.6rem;
+  }
+
+  .guide-step-text {
+    max-width: 65ch;
+    color: var(--color-ink-2);
+    line-height: 1.6;
+    margin: 0 0 1.25rem;
+  }
+
+  .guide-step-text strong { color: var(--color-ink); }
+
+  .guide-shot {
+    display: block;
+    width: 100%;
+    border-radius: 12px;
+    border: 1px solid var(--color-rule);
+  }
+
+  .guide-shot--wide {
+    max-width: 100%;
+  }
+
+  .guide-shot-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 160px;
+    border-radius: 12px;
+    border: 1px dashed var(--color-rule);
+    color: var(--color-muted);
+    font-size: 0.8125rem;
+    font-weight: 600;
+  }
+
+  .guide-cta {
+    display: inline-block;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 1rem;
+    color: var(--color-accent);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color 120ms var(--ease-out, ease);
+  }
+
+  .guide-cta:hover { border-color: var(--color-accent); }
+</style>

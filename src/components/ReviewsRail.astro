@@ -1,0 +1,249 @@
+---
+import type { Post } from '../lib/wordpress';
+
+interface ReviewItem {
+  post: Post;
+  score: number | null;
+}
+
+interface Props {
+  items: ReviewItem[];
+  href: string;
+  columns?: number;
+}
+
+const { items, href, columns = 4 } = Astro.props;
+
+function scoreColor(score: number) {
+  if (score >= 8) return '#3fae6a';
+  if (score >= 6) return '#d9a233';
+  return '#d93259';
+}
+
+function formatScore(score: number) {
+  return Number.isInteger(score) ? String(score) : score.toFixed(1);
+}
+---
+
+{items.length > 0 && (
+  <section class="reviews-rail" aria-labelledby="reviews-rail-title">
+    <div class="rail-head">
+      <h2 class="rail-title" id="reviews-rail-title">Reviews</h2>
+      <a href={href} class="rail-more">Ver todo →</a>
+    </div>
+    <div class="reviews-grid" style={`--cols: ${columns}`}>
+      {items.map(({ post, score }) => (
+        <a href={post.uri} class="review-card">
+          {post.featuredImage?.node.sourceUrl ? (
+            <img
+              src={post.featuredImage.node.sourceUrl}
+              alt={post.featuredImage.node.altText || ''}
+              loading="lazy"
+              class="review-img"
+            />
+          ) : (
+            <div class="review-placeholder" aria-hidden="true"></div>
+          )}
+          {score !== null && (
+            <span class="review-score" style={`--score-color:${scoreColor(score)}`}>{formatScore(score)}</span>
+          )}
+          <div class="review-body">
+            <h3 class="review-title" set:html={post.title} />
+            <div class="review-body-row">
+              {post.author?.node.name && post.author.node.name !== 'Riff Valley' && (
+                <span class="review-byline">
+                  {post.author.node.avatar?.url && <img src={post.author.node.avatar.url} alt="" class="review-avatar" />}
+                  {post.author.node.name}
+                </span>
+              )}
+              <time datetime={post.date} class="review-date">
+                {new Date(post.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
+              </time>
+            </div>
+          </div>
+        </a>
+      ))}
+    </div>
+  </section>
+)}
+
+<style>
+  /* Reviews es el contenido "estrella" (nota + portada grande) — en vez de
+     ser un riel más igual a los de al lado, lleva su propio fondo tintado
+     para que destaque como bloque especial dentro de la tarjeta. */
+  .reviews-rail {
+    margin-top: var(--space-2xl, 4rem);
+    padding: 1.5rem;
+    border-radius: 16px;
+    background:
+      radial-gradient(60rem 20rem at 0% 0%, color-mix(in srgb, var(--color-accent) 10%, transparent), transparent 60%),
+      var(--color-paper);
+    border: 1px solid var(--color-rule);
+  }
+
+  .rail-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-md, 1rem);
+    margin-bottom: var(--space-md, 1rem);
+  }
+
+  .rail-title {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 1.125rem;
+    letter-spacing: -0.01em;
+    color: var(--color-ink);
+    margin: 0;
+  }
+
+  .rail-more {
+    flex-shrink: 0;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--color-accent);
+    text-decoration: none;
+    white-space: nowrap;
+    border-bottom: 1px solid transparent;
+    transition: border-color 120ms var(--ease-out, ease);
+  }
+
+  .rail-more:hover { border-color: var(--color-accent); }
+
+  .reviews-grid {
+    display: grid;
+    grid-template-columns: repeat(var(--cols, 4), minmax(0, 1fr));
+    gap: var(--space-md, 1rem);
+  }
+
+  @media (max-width: 60rem) {
+    .reviews-grid { grid-template-columns: repeat(min(2, var(--cols, 4)), minmax(0, 1fr)); }
+  }
+
+  @media (max-width: 30rem) {
+    .reviews-grid { grid-template-columns: 1fr; }
+  }
+
+  .review-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    /* Padding arriba/lados para que la portada quede tan separada del
+       borde superior como el body lo está del inferior — antes la imagen
+       tocaba el borde de la tarjeta y quedaba asimétrico. */
+    padding: 1.1rem 1.1rem 0;
+    text-decoration: none;
+    color: inherit;
+    border-radius: var(--radius-card, 12px);
+    background: var(--color-paper-2);
+    transition: background var(--dur-short, 220ms) var(--ease-out, ease),
+                transform var(--dur-short, 220ms) var(--ease-out, ease);
+  }
+
+  .review-card:hover {
+    background: var(--color-paper-3);
+    transform: translateY(-2px);
+  }
+
+  .review-img {
+    /* Resolución nativa: si la imagen es más pequeña que la tarjeta, se
+       queda pequeña — nada de estirar ni recortar para rellenar una caja
+       fija. max-width evita que una imagen grande desborde la tarjeta. */
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    margin: 0 auto;
+    border-radius: calc(var(--radius-card, 12px) - 4px);
+  }
+
+  .review-placeholder {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: calc(var(--radius-card, 12px) - 4px);
+    background:
+      radial-gradient(120% 140% at 100% 0%, color-mix(in oklch, var(--color-accent) 22%, transparent), transparent 60%),
+      var(--color-paper-3);
+  }
+
+  .review-score {
+    position: absolute;
+    top: 0.6rem;
+    right: 0.6rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.4rem;
+    height: 2.4rem;
+    padding: 0 0.5rem;
+    border-radius: 9999px;
+    background: var(--score-color, var(--color-accent));
+    color: #fff;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 1rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  }
+
+  .review-body {
+    padding: 0.9rem 0 1.1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    /* flex:1 para que ocupe el espacio que sobra bajo una portada a
+       resolución nativa (que puede ser más pequeña que la tarjeta) en vez
+       de dejar un hueco muerto debajo. */
+    flex: 1;
+  }
+
+  .review-title {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 1.0625rem;
+    line-height: 1.3;
+    margin: 0 0 0.4rem;
+    color: var(--color-ink);
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .review-body-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .review-byline {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    min-width: 0;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-ink-2);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .review-avatar {
+    flex-shrink: 0;
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .review-date {
+    flex-shrink: 0;
+    margin-left: auto;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+    color: var(--color-muted);
+    white-space: nowrap;
+  }
+</style>

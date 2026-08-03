@@ -1,0 +1,91 @@
+---
+import type { Post } from '../lib/wordpress';
+import PostCard from './PostCard.astro';
+
+interface Props {
+  name: string;
+  href: string;
+  posts: Post[];
+  /** Nº de columnas del grid en escritorio (se va capando solo en pantallas
+   * más pequeñas). Por defecto 4, como siempre — variarlo por riel es lo
+   * que rompe la monotonía de "Actualidad". */
+  columns?: number;
+  cardSize?: 'lg' | 'md' | 'sm' | 'xs';
+  showExcerpt?: boolean;
+  /** Fondo tintado + padding propio, igual que ReviewsRail — para rieles
+   * "destacados" (como la entrevista hero) que necesitan separarse
+   * visualmente de los rieles normales de al lado. */
+  spotlight?: boolean;
+}
+
+const { name, href, posts, columns = 4, cardSize = 'sm', showExcerpt = false, spotlight = false } = Astro.props;
+---
+
+{posts.length > 0 && (
+  <section class={`rail${spotlight ? ' rail--spotlight' : ''}`} aria-labelledby={`rail-${href}`}>
+    <div class="rail-head">
+      <h2 class="rail-title" id={`rail-${href}`}>{name}</h2>
+      <a href={href} class="rail-more">Ver todo →</a>
+    </div>
+    <div class="rail-track" style={`--cols: ${columns}`}>
+      {posts.map(post => <PostCard post={post} size={cardSize} showExcerpt={showExcerpt} />)}
+    </div>
+  </section>
+)}
+
+<style>
+  .rail { margin-top: var(--space-2xl, 4rem); }
+
+  .rail--spotlight {
+    padding: 1.5rem;
+    border-radius: 16px;
+    background:
+      radial-gradient(60rem 20rem at 100% 0%, color-mix(in srgb, var(--color-accent-2) 10%, transparent), transparent 60%),
+      var(--color-paper);
+    border: 1px solid var(--color-rule);
+  }
+
+  .rail-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-md, 1rem);
+    margin-bottom: var(--space-md, 1rem);
+  }
+
+  .rail-title {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 1.125rem;
+    letter-spacing: -0.01em;
+    color: var(--color-ink);
+    margin: 0;
+  }
+
+  .rail-more {
+    flex-shrink: 0;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--color-accent);
+    text-decoration: none;
+    white-space: nowrap;
+    border-bottom: 1px solid transparent;
+    transition: border-color 120ms var(--ease-out, ease);
+  }
+
+  .rail-more:hover { border-color: var(--color-accent); }
+
+  .rail-track {
+    display: grid;
+    grid-template-columns: repeat(var(--cols, 4), minmax(0, 1fr));
+    gap: var(--space-md, 1rem);
+  }
+
+  @media (max-width: 60rem) {
+    .rail-track { grid-template-columns: repeat(min(3, var(--cols, 4)), minmax(0, 1fr)); }
+  }
+
+  @media (max-width: 40rem) {
+    .rail-track { grid-template-columns: repeat(min(2, var(--cols, 4)), minmax(0, 1fr)); gap: var(--space-sm, 0.75rem); }
+  }
+</style>

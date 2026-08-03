@@ -1,0 +1,249 @@
+/* Hallmark · genre: atmospheric · macrostructure: Ecosystem Index (Home) + Long Document (content)
+ * theme: custom (brand palette, copiada literal de spammusic-front/tailwind.config.js)
+ * paper (dark): #00021f · accent: #e46e8a · axes: dark / geometric-sans / warm
+ * display: Geist 800 · body: Geist 400 · outlier: Skaters (wordmark, 2 slots) · studied: no
+ * nav: N1b · footer: Ft1 · design-system: design.md · v0.9.0
+ */
+@import "tailwindcss";
+@source "../";
+
+@variant light (&:where(.light, .light *));
+
+@theme {
+  /* Paleta de marca Riff Valley — idéntica a spammusic-front (tailwind.config.js `colors.rv`) */
+  --color-rv-pink:         #e46e8a;
+  --color-rv-purple:       #b0669f;
+  --color-rv-blue:         #0064d6;
+  --color-rv-blue-dark:    #00309b;
+  --color-rv-navy:         #00021f;
+  --color-rv-dark-card:    #404157;
+  --color-rv-dark-surface: #2a2b3d;
+
+  /* Dark — identidad por defecto */
+  --color-paper:      #00021f;
+  --color-paper-2:    #2a2b3d;
+  --color-paper-3:    #404157;
+  --color-ink:        #ffffff;
+  --color-ink-2:       rgba(255, 255, 255, 0.72);
+  --color-rule:        rgba(255, 255, 255, 0.14);
+  --color-rule-2:      rgba(255, 255, 255, 0.08);
+  --color-muted:       rgba(255, 255, 255, 0.5);
+  --color-accent:      #e46e8a;
+  --color-accent-2:    #b0669f;
+  --color-accent-ink:  #17081c;
+  --color-focus:       #f086a0;
+
+  --font-display: 'Geist', ui-sans-serif, system-ui, sans-serif;
+  --font-body:    'Geist', ui-sans-serif, system-ui, sans-serif;
+  --font-outlier: 'Skaters', var(--font-display);
+
+  --text-display: clamp(2.25rem, 4vw + 1rem, 3.75rem);
+
+  /* Valores custom para evitar clases con [] */
+  --max-width-site: 1280px;
+  --border-width-header: 1px;
+}
+
+@font-face {
+  font-family: 'Skaters';
+  src: url('/fonts/Skaters.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Light — alternativa opt-in (mismo acento, superficie clara como en spammusic-front) */
+:root.light {
+  --color-paper:      #ffffff;
+  --color-paper-2:    #faf7fa;
+  --color-paper-3:    #f2edf3;
+  --color-ink:        #00021f;
+  --color-ink-2:      rgba(0, 2, 31, 0.68);
+  --color-rule:       rgba(0, 2, 31, 0.12);
+  --color-rule-2:     rgba(0, 2, 31, 0.07);
+  --color-muted:      rgba(0, 2, 31, 0.48);
+  --color-accent:     #e46e8a;
+  --color-accent-2:   #b0669f;
+  --color-accent-ink: #ffffff;
+  --color-focus:      #c94d70;
+}
+
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html {
+    background: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-body);
+    overflow-x: clip;
+  }
+
+  body { overflow-x: clip; }
+
+  img { max-width: 100%; }
+
+  ::selection {
+    background: color-mix(in srgb, var(--color-accent) 35%, transparent);
+    color: var(--color-ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+
+  /* Riel de blooms del canvas atmospheric — solo se activa donde se aplique
+     .bloom-canvas (portada); nunca en modo claro. */
+  .bloom-canvas { position: relative; isolation: isolate; }
+  .bloom-canvas::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(48rem 32rem at 12% -8%, color-mix(in srgb, var(--color-accent) 16%, transparent), transparent 60%),
+      radial-gradient(40rem 30rem at 92% 18%, color-mix(in srgb, var(--color-accent) 10%, transparent), transparent 65%);
+  }
+  :global(html.light) .bloom-canvas::before { display: none; }
+
+  /* Entrada orquestada única — solo se aplica en la portada (Ecosystem Index). */
+  .reveal {
+    opacity: 0;
+    transform: translateY(8px);
+    /* Rápida a propósito: con --i llegando a 4-5, un stagger largo hace que
+       las últimas secciones tarden casi 1s en aparecer y nadie llega a
+       notar el detalle — mejor sutil pero casi inmediato. */
+    animation: reveal 180ms var(--ease-out) forwards;
+    animation-delay: calc(var(--i, 0) * 35ms);
+  }
+  @keyframes reveal {
+    to { opacity: 1; transform: none; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reveal {
+      animation: reveal-reduced 150ms linear forwards;
+    }
+    @keyframes reveal-reduced {
+      to { opacity: 1; transform: none; }
+    }
+  }
+
+  /* Gutenberg content inside posts */
+  .post-content { line-height: 1.7; }
+  .post-content h2 { font-family: var(--font-display); font-weight: 800; @apply text-2xl mt-10 mb-3; }
+  .post-content h3 { font-family: var(--font-display); font-weight: 700; @apply text-xl mt-8 mb-2; }
+  .post-content p  { @apply mb-4; }
+  .post-content a  { color: var(--color-accent); text-decoration: underline; text-underline-offset: 2px; }
+  .post-content a:hover { color: var(--color-accent-2); }
+  .post-content ul { @apply list-disc pl-6 mb-4; }
+  .post-content ol { @apply list-decimal pl-6 mb-4; }
+  .post-content blockquote {
+    border-left: 2px solid var(--color-accent);
+    padding-left: 1rem;
+    margin: 1.5rem 0;
+    color: var(--color-ink-2);
+    font-style: italic;
+  }
+  .post-content img { @apply rounded my-4 w-full; }
+  .post-content figcaption { font-size: 0.8125rem; text-align: center; margin-top: 0.25rem; color: var(--color-muted); }
+
+  /* Caja de puntuación del plugin "Let's Review" embebida en el content de WordPress */
+  .post-content .lets-review-block__wrap {
+    max-width: 480px;
+    margin: 2.5rem auto;
+    border-radius: var(--radius-card, 12px);
+    overflow: hidden;
+    border: 1px solid var(--color-rule);
+  }
+
+  .post-content .lets-review-block__main-title {
+    background: var(--color-paper-3);
+    padding: 14px 20px;
+  }
+
+  .post-content .lets-review-block__title {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 15px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    text-align: center;
+    color: var(--color-ink);
+  }
+
+  .post-content .lets-review-block__crits {
+    background: var(--color-paper-2);
+    padding: 20px 24px;
+  }
+
+  .post-content .lets-review-block__crit {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    column-gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .post-content .lets-review-block__crit:last-child {
+    margin-bottom: 0;
+  }
+
+  .post-content .lets-review-block__crit__title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--color-ink-2);
+  }
+
+  .post-content .lets-review-block__crit__score {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--color-ink);
+  }
+
+  .post-content .score-overlay-wrap {
+    grid-column: 1 / -1;
+    height: 6px;
+    margin-top: 6px;
+    background: var(--color-rule-2);
+    border-radius: 9999px;
+    overflow: hidden;
+  }
+
+  .post-content .score-overlay {
+    height: 100%;
+    border-radius: 9999px;
+    background: var(--color-accent);
+  }
+
+  .post-content .lets-review-block__final-score {
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+    background: var(--color-paper-3);
+    border-top: 1px solid var(--color-rule);
+  }
+
+  .post-content .score__wrap {
+    width: 76px;
+    height: 76px;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-paper-2);
+    border: 1px solid var(--color-rule);
+  }
+
+  .post-content .score__wrap .score {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 26px;
+    color: var(--color-accent);
+  }
+}

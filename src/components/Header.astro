@@ -1,0 +1,912 @@
+---
+import Search from './Search.astro';
+import { getAllPosts, extractReviewScore } from '../lib/wordpress';
+
+// getAllPosts() está memoizada a nivel de módulo — index.astro/[...path].astro
+// ya la llaman, así que reutiliza la misma promesa/resultado sin repetir la
+// paginación completa contra WPGraphQL.
+const allPosts = await getAllPosts();
+
+const PREVIEW_COUNT = 3;
+
+function getPreviewPosts(href: string) {
+  return allPosts
+    .filter(p => p.categories.some(c => c.uri === href))
+    .slice(0, PREVIEW_COUNT)
+    .map(post => ({ post, score: extractReviewScore(post.content) }));
+}
+
+function scoreColor(score: number) {
+  if (score >= 8) return '#3fae6a';
+  if (score >= 6) return '#d9a233';
+  return '#d93259';
+}
+
+function formatScore(score: number) {
+  return Number.isInteger(score) ? String(score) : score.toFixed(1);
+}
+
+function withPreviews(children: { label: string; href: string }[]) {
+  return children.map(child => ({
+    ...child,
+    previewPosts: getPreviewPosts(child.href),
+  }));
+}
+
+const nav = [
+  {
+    label: 'Artículos',
+    href: '/articulos',
+    children: withPreviews([
+      { label: 'Análisis de festivales', href: '/articulos/analisis' },
+      { label: 'Artículos generales',    href: '/articulos/articulos-generales' },
+      { label: 'Bandas',                 href: '/articulos/bandas-articulos-2' },
+      { label: 'Discográficas',          href: '/articulos/discograficas' },
+      { label: 'Géneros',                href: '/articulos/generos' },
+      { label: 'Historia',               href: '/articulos/historia' },
+      { label: 'Mejores discos del año', href: '/articulos/mejores-discos/discos-del-ano' },
+      { label: 'Mejores discos del mes', href: '/articulos/mejores-discos/discos-del-mes' },
+      { label: 'Portadas de álbumes',    href: '/articulos/portadas-de-albumes' },
+    ]),
+  },
+  {
+    label: 'Novedades',
+    href: '/novedades',
+    children: withPreviews([
+      { label: 'Noticias', href: '/novedades/noticias' },
+      { label: 'La Lupa',  href: '/novedades/la-lupa' },
+    ]),
+  },
+  { label: 'Reviews', href: '/review-de-discos', previewPosts: getPreviewPosts('/review-de-discos') },
+  {
+    label: 'Crónicas',
+    href: '/cronicas',
+    children: withPreviews([
+      { label: 'Conciertos', href: '/cronicas/conciertos' },
+      { label: 'Festivales', href: '/cronicas/festivales-cronicas' },
+    ]),
+  },
+  { label: 'Entrevistas', href: '/entrevistas', previewPosts: getPreviewPosts('/entrevistas') },
+];
+
+const social = [
+  {
+    label: 'Facebook',
+    href: 'https://www.facebook.com/RiffValleyES',
+    path: 'M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z',
+  },
+  {
+    label: 'Twitter',
+    href: 'https://www.twitter.com/RiffValleyES',
+    path: 'M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z',
+  },
+  {
+    label: 'Instagram',
+    href: 'https://www.instagram.com/RiffValleyES',
+    path: 'M12 2.163c3.204 0 3.584.012 4.85.07 1.366.062 2.633.34 3.608 1.315.975.975 1.253 2.242 1.315 3.608.058 1.266.069 1.646.069 4.85s-.012 3.584-.07 4.85c-.062 1.366-.34 2.633-1.315 3.608-.975.975-2.242 1.253-3.608 1.315-1.266.058-1.646.069-4.85.069s-3.584-.012-4.85-.07c-1.366-.062-2.633-.34-3.608-1.315-.975-.975-1.253-2.242-1.315-3.608C2.175 15.647 2.163 15.267 2.163 12s.012-3.584.07-4.85c.062-1.366.34-2.633 1.315-3.608.975-.975 2.242-1.253 3.608-1.315C8.416 2.175 8.796 2.163 12 2.163zm0-2.163C8.741 0 8.332.014 7.052.072 5.775.13 4.602.396 3.635 1.362 2.668 2.329 2.402 3.502 2.344 4.78.014 8.332 0 8.741 0 12s.014 3.668.072 4.948c.058 1.277.324 2.45 1.29 3.417.967.966 2.14 1.232 3.417 1.29C8.332 23.986 8.741 24 12 24s3.668-.014 4.948-.072c1.277-.058 2.45-.324 3.417-1.29.966-.966 1.232-2.14 1.29-3.417.058-1.28.072-1.689.072-4.948s-.014-3.668-.072-4.948c-.058-1.277-.324-2.45-1.29-3.417-.966-.966-2.14-1.232-3.417-1.29C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324A6.162 6.162 0 0 0 12 5.838zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 1 0 2.881 1.44 1.44 0 0 1 0-2.881z',
+  },
+  {
+    label: 'Telegram',
+    href: 'https://t.me/RiffValleyES',
+    path: 'M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z',
+  },
+  {
+    label: 'Spotify',
+    href: 'https://open.spotify.com/user/vy0sh3a649tix6bfajzstx5xq',
+    path: 'M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.161-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141 4.322-1.32 9.721-.66 13.441 1.62.361.181.54.78.3 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.42 1.56-.299.421-1.02.599-1.559.3z',
+  },
+  {
+    label: 'Threads',
+    href: 'https://www.threads.net/@riffvalleyes',
+    path: 'M12.186 24h-.007c-3.581-.024-6.334-1.205-8.184-3.509C2.35 18.44 1.5 15.586 1.472 12.01v-.017c.03-3.579.879-6.43 2.525-8.482C5.845 1.205 8.6.024 12.18 0h.014c2.746.02 5.043.725 6.826 2.098 1.677 1.29 2.858 3.13 3.509 5.467l-2.04.569c-1.083-3.885-3.744-5.865-7.911-5.89-2.914.02-5.116.933-6.545 2.712-1.343 1.671-2.038 4.083-2.067 7.169.03 3.086.725 5.498 2.067 7.169 1.429 1.779 3.63 2.692 6.545 2.712 2.62-.019 4.35-.646 5.783-2.098 1.257-1.271 1.996-2.978 2.19-5.073.075-.807.055-1.593-.06-2.348-.53.014-1.087.014-1.674 0-.02 1.72-.55 3.06-1.573 3.98-.945.849-2.278 1.278-3.965 1.278-1.44 0-2.618-.44-3.436-1.278-.782-.802-1.171-1.884-1.155-3.129.033-2.55 2.16-4.34 5.207-4.35 1.03-.003 2.005.157 2.897.475-.204-1.267-.66-2.184-1.365-2.734-.717-.56-1.71-.844-2.955-.844-1.895 0-3.34.755-4.297 2.243l-1.744-1.153c1.257-1.928 3.177-2.94 5.706-3.008.049-.001.098-.002.147-.002 1.798 0 3.263.475 4.354 1.412 1.106.951 1.796 2.407 2.05 4.328a19.44 19.44 0 0 1 .07 3.017c.14.911.166 1.869.075 2.848-.242 2.598-1.164 4.75-2.741 6.397-1.79 1.87-4.181 2.816-7.106 2.837z',
+  },
+];
+---
+
+<header class="site-header" id="site-header">
+  <div class="brand-band">
+    <div class="landscape" aria-hidden="true">
+      <img src="/bg-mountains-day.png" alt="" class="landscape__image" />
+      <img src="/bg-mountains-night.png" alt="" class="landscape__image landscape__night" />
+    </div>
+
+    <div class="landscape-compact" aria-hidden="true">
+      <img src="/bg-mountains-compact-day.png" alt="" class="landscape-compact__image" />
+      <img src="/bg-mountains-compact-night.png" alt="" class="landscape-compact__image landscape-compact__night" />
+    </div>
+
+    <div class="icon-bar">
+      <ul class="icon-list">
+        {social.map(item => (
+          <li>
+            <a href={item.href} target="_blank" rel="noopener nofollow" aria-label={item.label} class="social-link">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d={item.path}></path></svg>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+
+    <div class="header-inner">
+      <a href="/" aria-label="Riff Valley" class="logo-link logo-link--hero" tabindex="-1" aria-hidden="true">
+        <img src="/LOGO-RIFF-VALLEY.svg" alt="" width="32" height="32" class="logo-mark" />
+        <span class="logo-word">Riff Valley</span>
+      </a>
+      <a href="/" aria-label="Riff Valley" class="logo-link logo-link--inline">
+        <img src="/LOGO-RIFF-VALLEY.svg" alt="" width="32" height="32" class="logo-mark" />
+        <span class="logo-word">Riff Valley</span>
+      </a>
+
+      <nav aria-label="Navegación principal" class="main-nav hidden md:flex">
+        {nav.map(item => (
+          <div class="nav-item">
+            <a href={item.href} class="nav-link">
+              {item.label}
+              {item.children && <span class="nav-caret" aria-hidden="true"></span>}
+            </a>
+            {item.children && (
+              <div class="mega-menu" data-active="0">
+                <div class="mega-menu-list">
+                  {item.children.map((child, i) => (
+                    <a href={child.href} class="mega-menu-item" data-idx={i}>{child.label}</a>
+                  ))}
+                </div>
+                <div class="mega-menu-preview">
+                  {item.children.map((child, i) => (
+                    <div class="mega-menu-panel" data-panel={i}>
+                      <div class="mega-menu-panel-head">
+                        <span class="mega-menu-panel-title">{child.label}</span>
+                        <a href={child.href} class="mega-menu-panel-link">Ver todo →</a>
+                      </div>
+                      {child.previewPosts.length > 0 ? (
+                        <div class="mega-menu-posts">
+                          {child.previewPosts.map(({ post, score }) => (
+                            <a href={post.uri} class="mega-menu-post">
+                              {post.featuredImage && (
+                                <img src={post.featuredImage.node.sourceUrl} alt="" loading="lazy" class="mega-menu-post-img" />
+                              )}
+                              <span class="mega-menu-post-title">{post.title}</span>
+                              {score !== null && (
+                                <span class="mega-menu-post-score" style={`--score-color:${scoreColor(score)}`}>{formatScore(score)}</span>
+                              )}
+                            </a>
+                          ))}
+                        </div>
+                      ) : (
+                        <p class="mega-menu-empty">Explora esta sección →</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {!item.children && item.previewPosts && item.previewPosts.length > 0 && (
+              <div class="mega-menu mega-menu--simple">
+                <div class="mega-menu-preview">
+                  <div class="mega-menu-panel" data-panel="0">
+                    <div class="mega-menu-panel-head">
+                      <span class="mega-menu-panel-title">{item.label}</span>
+                      <a href={item.href} class="mega-menu-panel-link">Ver todo →</a>
+                    </div>
+                    <div class="mega-menu-posts">
+                      {item.previewPosts.map(({ post, score }) => (
+                        <a href={post.uri} class="mega-menu-post">
+                          {post.featuredImage && (
+                            <img src={post.featuredImage.node.sourceUrl} alt="" loading="lazy" class="mega-menu-post-img" />
+                          )}
+                          <span class="mega-menu-post-title">{post.title}</span>
+                          {score !== null && (
+                            <span class="mega-menu-post-score" style={`--score-color:${scoreColor(score)}`}>{formatScore(score)}</span>
+                          )}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+      </nav>
+
+      <div class="header-actions">
+        <Search />
+
+        <button id="theme-toggle" aria-label="Cambiar tema" class="icon-btn">
+          <svg class="light:hidden w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M12 7a5 5 0 100 10A5 5 0 0012 7z" />
+          </svg>
+          <svg class="hidden light:block w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+          </svg>
+        </button>
+
+        <a href="/contacto" class="contact-link hidden lg:inline">Contacto</a>
+
+        <button id="menu-toggle" aria-label="Abrir menú" aria-expanded="false" aria-controls="mobile-menu" class="icon-btn menu-btn">
+          <svg class="w-[20px] h-[20px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M4 12h16M4 17h16" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="mobile-menu" class="mobile-menu md:hidden" hidden>
+    <nav aria-label="Navegación principal (móvil)">
+      {nav.map(item => (
+        <div class="mobile-group">
+          <a href={item.href} class="mobile-link mobile-link--top">{item.label}</a>
+          {item.children && (
+            <div class="mobile-children">
+              {item.children.map(child => (
+                <a href={child.href} class="mobile-link mobile-link--child">{child.label}</a>
+              ))}
+            </div>
+          )}
+        </div>
+      ))}
+      <a href="/contacto" class="mobile-link mobile-link--top">Contacto</a>
+    </nav>
+
+    <ul class="mobile-social">
+      {social.map(item => (
+        <li>
+          <a href={item.href} target="_blank" rel="noopener nofollow" aria-label={item.label} class="mobile-social-link">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d={item.path}></path></svg>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </div>
+</header>
+
+<script>
+  const header = document.getElementById('site-header');
+  let ticking = false;
+
+  function updateScrollState() {
+    header?.classList.toggle('is-scrolled', window.scrollY > 24);
+    ticking = false;
+  }
+
+  window.addEventListener('scroll', () => {
+    if (!ticking) {
+      requestAnimationFrame(updateScrollState);
+      ticking = true;
+    }
+  }, { passive: true });
+  updateScrollState();
+
+  const themeBtn = document.getElementById('theme-toggle');
+  themeBtn?.addEventListener('click', () => {
+    const isLight = document.documentElement.classList.toggle('light');
+    localStorage.setItem('theme', isLight ? 'light' : 'dark');
+  });
+
+  const menuBtn = document.getElementById('menu-toggle');
+  const mobileMenu = document.getElementById('mobile-menu');
+
+  function closeMenu() {
+    mobileMenu?.setAttribute('hidden', '');
+    menuBtn?.setAttribute('aria-expanded', 'false');
+    document.body.style.overflow = '';
+  }
+
+  function toggleMenu() {
+    const isOpen = !mobileMenu?.hasAttribute('hidden');
+    if (isOpen) {
+      closeMenu();
+    } else {
+      mobileMenu?.removeAttribute('hidden');
+      menuBtn?.setAttribute('aria-expanded', 'true');
+      document.body.style.overflow = 'hidden';
+    }
+  }
+
+  menuBtn?.addEventListener('click', toggleMenu);
+  mobileMenu?.querySelectorAll('a').forEach(a => a.addEventListener('click', closeMenu));
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !mobileMenu?.hasAttribute('hidden')) closeMenu();
+  });
+  window.matchMedia('(min-width: 768px)').addEventListener('change', (e) => {
+    if (e.matches) closeMenu();
+  });
+
+  document.querySelectorAll('.nav-item').forEach(navItem => {
+    const megaMenu = navItem.querySelector('.mega-menu[data-active]');
+    if (!megaMenu) return;
+
+    megaMenu.querySelectorAll('.mega-menu-item').forEach(item => {
+      const setActive = () => {
+        megaMenu.setAttribute('data-active', item.getAttribute('data-idx') ?? '0');
+      };
+      item.addEventListener('mouseenter', setActive);
+      item.addEventListener('focus', setActive);
+    });
+
+    navItem.addEventListener('mouseleave', () => {
+      megaMenu.setAttribute('data-active', '0');
+    });
+  });
+</script>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: var(--z-sticky, 200);
+  }
+
+  .brand-band {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: 19rem;
+    transition: min-height 320ms var(--ease-out, ease);
+  }
+
+  .site-header.is-scrolled .brand-band {
+    min-height: 4.5rem;
+    box-shadow: 0 8px 28px -18px rgba(0, 0, 0, 0.6);
+  }
+
+  /* Paisaje día/noche del hero: dos imágenes apiladas que se funden entre sí
+     por opacidad según el tema real del sitio (.light en <html> = modo
+     claro), no por un temporizador propio — solo se ve en el estado hero,
+     porque la capa compacta (opaca) las tapa por completo en cuanto se hace
+     scroll. */
+  .landscape {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .landscape__image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center bottom;
+  }
+
+  .landscape__night {
+    opacity: 0;
+    transition: opacity 2.5s ease-in-out;
+  }
+
+  html:not(.light) .landscape__night {
+    opacity: 1;
+  }
+
+  /* Misma pareja de imágenes recortada a la franja de picos más altos, para
+     el header compacto — aparece con el scroll y también sigue el tema
+     día/noche, igual que la versión hero. */
+  .landscape-compact {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    overflow: hidden;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 320ms var(--ease-out, ease);
+  }
+
+  .site-header.is-scrolled .landscape-compact {
+    opacity: 1;
+  }
+
+  .landscape-compact__image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center bottom;
+  }
+
+  .landscape-compact__night {
+    opacity: 0;
+    transition: opacity 2.5s ease-in-out;
+  }
+
+  html:not(.light) .landscape-compact__night {
+    opacity: 1;
+  }
+
+  .brand-band::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    background: linear-gradient(to bottom, rgba(10, 4, 30, 0.12), rgba(10, 4, 30, 0.55));
+    pointer-events: none;
+  }
+
+  .icon-bar {
+    position: relative;
+    z-index: 3;
+    display: none;
+  }
+
+  @media (min-width: 48rem) {
+    .icon-bar { display: block; }
+  }
+
+  .icon-list {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0.65rem;
+    list-style: none;
+    margin: 0;
+    padding: 0.45rem var(--space-lg, 1.5rem) 0.15rem;
+    max-width: var(--max-width-site, 1280px);
+    margin-inline: auto;
+  }
+
+  .social-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    color: rgba(255, 255, 255, 0.85);
+    transition: color var(--dur-micro, 120ms) var(--ease-out, ease), transform var(--dur-micro, 120ms) var(--ease-out, ease);
+  }
+
+  .social-link svg { width: 19px; height: 19px; }
+
+  .social-link:hover { color: #ffffff; transform: translateY(-1px); }
+
+  .header-inner {
+    position: relative;
+    z-index: 3;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+    max-width: var(--max-width-site, 1280px);
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: auto;
+    margin-bottom: 0;
+    padding: 0.5rem var(--space-lg, 1.5rem) 0.65rem;
+  }
+
+  /* Dos logos superpuestos que se cruzan por opacidad (nunca cambian de
+     `position`) — así la transición es siempre una animación suave, sin el
+     salto instantáneo que daba alternar position:absolute/static en un único
+     elemento a mitad de la animación de scroll. */
+  .logo-link--hero {
+    position: absolute;
+    left: 50%;
+    bottom: 100%;
+    transform: translateX(-50%);
+    margin-bottom: 2.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    text-decoration: none;
+    opacity: 1;
+    transition: opacity 320ms var(--ease-out, ease);
+  }
+
+  .logo-link--hero .logo-mark { height: 84px; width: 84px; }
+
+  .logo-link--hero .logo-word { font-size: clamp(3rem, 5vw + 1.5rem, 5rem); }
+
+  .site-header.is-scrolled .logo-link--hero {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .logo-link--inline {
+    grid-column: 1;
+    justify-self: end;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 320ms var(--ease-out, ease);
+  }
+
+  .logo-link--inline .logo-mark { height: 40px; width: 40px; }
+
+  .logo-link--inline .logo-word { font-size: 1.85rem; }
+
+  .site-header.is-scrolled .logo-link--inline {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .logo-mark {
+    display: block;
+    filter: drop-shadow(0 1px 3px rgba(0,0,0,.4));
+  }
+
+  .logo-word {
+    font-family: var(--font-outlier);
+    font-weight: 400;
+    letter-spacing: 0.01em;
+    line-height: 1;
+    color: #ffffff;
+    text-shadow: 0 1px 4px rgba(0,0,0,.35);
+    white-space: nowrap;
+  }
+
+  .main-nav {
+    grid-column: 2;
+    justify-self: center;
+    align-items: center;
+    gap: 0.125rem;
+  }
+
+  .nav-item { position: relative; }
+
+  .nav-link {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.5rem 0.7rem;
+    font-family: var(--font-display);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.85);
+    text-decoration: none;
+    transition: color var(--dur-micro, 120ms) var(--ease-out, ease);
+  }
+
+  .nav-caret {
+    width: 5px;
+    height: 5px;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    transform: rotate(45deg) translateY(-2px);
+    opacity: 0.7;
+    transition: transform 160ms var(--ease-out, ease);
+  }
+
+  .nav-item:hover .nav-caret,
+  .nav-item:focus-within .nav-caret {
+    transform: rotate(225deg) translateY(1px);
+  }
+
+  .nav-link::after {
+    content: '';
+    position: absolute;
+    left: 0.7rem;
+    right: 0.7rem;
+    bottom: 0.2rem;
+    height: 2px;
+    border-radius: 9999px;
+    background: currentColor;
+    transform: scaleX(0);
+    transform-origin: center;
+    transition: transform 200ms var(--ease-out, ease);
+  }
+
+  .nav-link:hover::after,
+  .nav-item:focus-within .nav-link::after {
+    transform: scaleX(1);
+  }
+
+  .nav-link:hover,
+  .nav-item:focus-within .nav-link { color: #ffffff; }
+
+  .mega-menu {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    padding-top: 0.6rem;
+    transform: translateX(-50%) translateY(-6px);
+    z-index: var(--z-dropdown, 100);
+    display: flex;
+    width: max-content;
+    max-width: min(640px, 90vw);
+    background: var(--color-paper-2);
+    border: 1px solid var(--color-rule);
+    border-radius: 14px;
+    box-shadow: 0 24px 48px -16px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 160ms var(--ease-out, ease), transform 160ms var(--ease-out, ease), visibility 160ms;
+  }
+
+  .mega-menu::before {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: 50%;
+    width: 10px;
+    height: 10px;
+    transform: translateX(-50%) rotate(45deg);
+    background: var(--color-paper-2);
+    border-left: 1px solid var(--color-rule);
+    border-top: 1px solid var(--color-rule);
+  }
+
+  .nav-item:hover .mega-menu,
+  .nav-item:focus-within .mega-menu {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  .mega-menu-list {
+    flex-shrink: 0;
+    width: 210px;
+    max-height: 22rem;
+    padding: 0.6rem;
+    border-right: 1px solid var(--color-rule-2);
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    overflow-y: auto;
+  }
+
+  .mega-menu-item {
+    display: block;
+    padding: 0.55rem 0.7rem;
+    border-radius: 8px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--color-ink-2);
+    text-decoration: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: background 120ms var(--ease-out, ease), color 120ms var(--ease-out, ease);
+  }
+
+  .mega-menu-item:hover,
+  .mega-menu-item:focus-visible {
+    background: color-mix(in oklch, var(--color-accent) 12%, var(--color-paper-3));
+    color: var(--color-ink);
+  }
+
+  .mega-menu-preview {
+    flex: 1;
+    min-width: 0;
+    padding: 0.9rem 1rem;
+  }
+
+  .mega-menu-panel {
+    display: none;
+  }
+
+  /* La categoría activa se guarda en data-active (ver <script> al final del
+     componente) en vez de derivarse solo de :hover — así el panel se queda
+     en la última subcategoría vista al mover el ratón hacia la cuadrícula
+     de posts, en vez de resetear a la primera en cuanto el cursor sale de
+     la lista lateral. */
+  .mega-menu[data-active="0"] .mega-menu-panel[data-panel="0"],
+  .mega-menu[data-active="1"] .mega-menu-panel[data-panel="1"],
+  .mega-menu[data-active="2"] .mega-menu-panel[data-panel="2"],
+  .mega-menu[data-active="3"] .mega-menu-panel[data-panel="3"],
+  .mega-menu[data-active="4"] .mega-menu-panel[data-panel="4"],
+  .mega-menu[data-active="5"] .mega-menu-panel[data-panel="5"],
+  .mega-menu[data-active="6"] .mega-menu-panel[data-panel="6"],
+  .mega-menu[data-active="7"] .mega-menu-panel[data-panel="7"],
+  .mega-menu[data-active="8"] .mega-menu-panel[data-panel="8"] {
+    display: block;
+  }
+
+  .mega-menu--simple .mega-menu-panel {
+    display: block;
+  }
+
+  .mega-menu-panel-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.7rem;
+  }
+
+  .mega-menu-panel-title {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 0.8125rem;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--color-ink);
+  }
+
+  .mega-menu-panel-link {
+    flex-shrink: 0;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-accent);
+    text-decoration: none;
+  }
+
+  .mega-menu-panel-link:hover {
+    text-decoration: underline;
+  }
+
+  .mega-menu-posts {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.65rem;
+  }
+
+  .mega-menu-post {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    text-decoration: none;
+  }
+
+  .mega-menu-post-img {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border-radius: 8px;
+    background: var(--color-paper-3);
+    display: block;
+  }
+
+  .mega-menu-post-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--color-ink-2);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    transition: color 120ms var(--ease-out, ease);
+  }
+
+  .mega-menu-post:hover .mega-menu-post-title {
+    color: var(--color-accent);
+  }
+
+  .mega-menu-post-score {
+    align-self: flex-start;
+    padding: 0.1rem 0.45rem;
+    border-radius: 999px;
+    font-size: 0.6875rem;
+    font-weight: 800;
+    line-height: 1.4;
+    color: #ffffff;
+    background: var(--score-color);
+  }
+
+  .mega-menu--simple .mega-menu-preview {
+    width: min(480px, 90vw);
+  }
+
+  .mega-menu-empty {
+    font-size: 0.8125rem;
+    color: var(--color-muted);
+    margin: 0;
+  }
+
+  .header-actions {
+    grid-column: 3;
+    justify-self: start;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .icon-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 9999px;
+    border: none;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.85);
+    cursor: pointer;
+    transition: background var(--dur-micro, 120ms) var(--ease-out, ease), color var(--dur-micro, 120ms) var(--ease-out, ease);
+  }
+
+  .icon-btn:hover { background: rgba(255, 255, 255, 0.14); color: #ffffff; }
+
+  /* El botón de hamburguesa reutiliza .icon-btn (display:flex) — esta regla,
+     al ir después en la cascada dentro del mismo stylesheet con scope, es la
+     que manda a partir de md y evita que quede visible en escritorio. */
+  @media (min-width: 48rem) {
+    .menu-btn { display: none; }
+  }
+
+  .contact-link {
+    margin-left: 0.5rem;
+    padding: 0.5rem 0.7rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.85);
+    text-decoration: none;
+    border-left: 1px solid rgba(255, 255, 255, 0.25);
+    transition: color var(--dur-micro, 120ms) var(--ease-out, ease);
+  }
+
+  .contact-link:hover { color: #ffffff; }
+
+  .mobile-menu {
+    max-height: calc(100dvh - 64px);
+    overflow-y: auto;
+    background: var(--color-paper);
+    border-top: 1px solid var(--color-rule);
+    padding: var(--space-md, 1rem) var(--space-lg, 1.5rem) var(--space-xl, 2.5rem);
+  }
+
+  .mobile-group {
+    padding: 0.4rem 0;
+    border-bottom: 1px solid var(--color-rule-2);
+  }
+
+  .mobile-group:last-of-type { border-bottom: none; }
+
+  .mobile-link {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    text-decoration: none;
+    color: var(--color-ink);
+  }
+
+  .mobile-link--top {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.9375rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+
+  .mobile-children {
+    display: flex;
+    flex-direction: column;
+    padding-left: 1rem;
+  }
+
+  .mobile-link--child {
+    font-size: 0.875rem;
+    color: var(--color-ink-2);
+  }
+
+  .mobile-link:hover,
+  .mobile-link:focus-visible { color: var(--color-accent); }
+
+  .mobile-social {
+    display: flex;
+    justify-content: center;
+    gap: 1.1rem;
+    list-style: none;
+    margin: var(--space-lg, 1.5rem) 0 0;
+    padding-top: var(--space-md, 1rem);
+    border-top: 1px solid var(--color-rule-2);
+  }
+
+  .mobile-social-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    color: var(--color-ink-2);
+  }
+
+  .mobile-social-link svg { width: 19px; height: 19px; }
+
+  .mobile-social-link:hover { color: var(--color-accent); }
+</style>

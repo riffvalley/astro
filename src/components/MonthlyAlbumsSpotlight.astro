@@ -1,0 +1,157 @@
+---
+import type { PostDetail } from '../lib/wordpress';
+
+interface Props {
+  post: PostDetail;
+  bands: string[];
+  href: string;
+}
+
+const { post, bands, href } = Astro.props;
+---
+
+<section class="monthly-albums" aria-labelledby="monthly-albums-title">
+  <div class="rail-head">
+    <h2 class="rail-title" id="monthly-albums-title">Mejores discos mensuales</h2>
+    <a href={href} class="rail-more">Ver todo →</a>
+  </div>
+  <a href={post.uri} class="monthly-albums-card">
+    <div class="monthly-albums-media">
+      {post.featuredImage?.node.sourceUrl ? (
+        <img
+          src={post.featuredImage.node.fullUrl || post.featuredImage.node.sourceUrl}
+          alt={post.featuredImage.node.altText || ''}
+          loading="lazy"
+          class="monthly-albums-img"
+        />
+      ) : (
+        <div class="monthly-albums-placeholder" aria-hidden="true"></div>
+      )}
+    </div>
+    <div class="monthly-albums-body">
+      <h3 class="monthly-albums-post-title" set:html={post.title} />
+      {bands.length > 0 && (
+        <ul class="monthly-albums-bands">
+          {bands.map(band => <li>{band}</li>)}
+        </ul>
+      )}
+    </div>
+  </a>
+</section>
+
+<style>
+  .monthly-albums {
+    margin-top: var(--space-2xl, 4rem);
+    padding: 1.5rem;
+    border-radius: 16px;
+    background:
+      radial-gradient(60rem 20rem at 0% 100%, color-mix(in srgb, var(--color-accent) 10%, transparent), transparent 60%),
+      var(--color-paper);
+    border: 1px solid var(--color-rule);
+  }
+
+  .rail-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-md, 1rem);
+    margin-bottom: var(--space-md, 1rem);
+  }
+
+  .rail-title {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 1.125rem;
+    letter-spacing: -0.01em;
+    color: var(--color-ink);
+    margin: 0;
+  }
+
+  .rail-more {
+    flex-shrink: 0;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--color-accent);
+    text-decoration: none;
+    white-space: nowrap;
+    border-bottom: 1px solid transparent;
+    transition: border-color 120ms var(--ease-out, ease);
+  }
+
+  .rail-more:hover { border-color: var(--color-accent); }
+
+  .monthly-albums-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+    align-items: center;
+    gap: 2rem;
+    text-decoration: none;
+    color: inherit;
+    border-radius: var(--radius-card, 12px);
+    background: var(--color-paper-2);
+    padding: 1.5rem;
+    transition: background var(--dur-short, 220ms) var(--ease-out, ease);
+  }
+
+  .monthly-albums-card:hover { background: var(--color-paper-3); }
+
+  .monthly-albums-media { display: flex; }
+
+  .monthly-albums-img {
+    /* Imagen completa a resolución nativa, sin recortar — igual que Reviews. */
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    margin: 0 auto;
+    border-radius: calc(var(--radius-card, 12px) - 4px);
+  }
+
+  .monthly-albums-placeholder {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    border-radius: calc(var(--radius-card, 12px) - 4px);
+    background:
+      radial-gradient(120% 140% at 100% 0%, color-mix(in oklch, var(--color-accent) 22%, transparent), transparent 60%),
+      var(--color-paper-3);
+  }
+
+  .monthly-albums-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    min-width: 0;
+  }
+
+  .monthly-albums-post-title {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 1.375rem;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    margin: 0;
+    color: var(--color-ink);
+  }
+
+  .monthly-albums-bands {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin: 0.2rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .monthly-albums-bands li {
+    padding: 0.35rem 0.9rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-accent-2);
+    background: color-mix(in oklch, var(--color-accent-2) 18%, transparent);
+  }
+
+  @media (max-width: 45rem) {
+    .monthly-albums-card { grid-template-columns: 1fr; }
+  }
+</style>

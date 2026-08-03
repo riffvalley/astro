@@ -1,0 +1,125 @@
+---
+export const prerender = false;
+
+import Layout from '../layouts/Layout.astro';
+import AgendaCalendarIsland from '../components/vue/AgendaCalendarIsland.vue';
+import GoogleCalendarSubscribe from '../components/GoogleCalendarSubscribe.astro';
+import { fetchRegionEvents } from '../lib/googleCalendar';
+import { buildSpainMap } from '../lib/spainMap';
+import { calendars } from '../lib/agendaCalendars';
+
+const today = new Date();
+const url = Astro.url;
+const year = Number(url.searchParams.get('year')) || today.getFullYear();
+const month = Number(url.searchParams.get('month')) || today.getMonth() + 1; // 1-12
+
+const monthStart = new Date(year, month - 1, 1);
+
+// Rango del grid: desde el lunes de la semana del día 1 hasta el domingo de
+// la semana del último día, para no dejar huecos en la cuadrícula de 6
+// semanas.
+const startOffset = (monthStart.getDay() + 6) % 7;
+const gridStart = new Date(monthStart);
+gridStart.setDate(monthStart.getDate() - startOffset);
+const gridEnd = new Date(gridStart);
+gridEnd.setDate(gridStart.getDate() + 42);
+
+const apiKey = import.meta.env.GOOGLE_CALENDAR_API_KEY;
+const events = apiKey ? await fetchRegionEvents(calendars, gridStart, gridEnd, apiKey) : [];
+
+const spainMap = buildSpainMap();
+---
+
+<Layout title="Agenda de conciertos – Riff Valley">
+  <div class="guide bloom-canvas">
+    <div class="guide-inner">
+      <h1 class="guide-title">Agenda de conciertos</h1>
+      <p class="guide-lede">
+        Conciertos por toda España y Portugal, filtrados por comunidad. Los eventos se gestionan en Google Calendar y se actualizan al instante, sin recompilar la web.
+      </p>
+
+      {!apiKey ? (
+        <p class="guide-warning">
+          Falta configurar <code>GOOGLE_CALENDAR_API_KEY</code> como variable de entorno para poder leer los calendarios.
+        </p>
+      ) : (
+        <AgendaCalendarIsland
+          client:load
+          navigation="selects"
+          fetchClient
+          events={events}
+          calendars={calendars}
+          year={year}
+          month={month}
+          spainMap={spainMap}
+        />
+      )}
+
+      <section class="guide-subscribe" aria-labelledby="guide-subscribe-title">
+        <h2 id="guide-subscribe-title" class="guide-subscribe-title">Añade estos calendarios al tuyo</h2>
+        <p class="guide-subscribe-text">
+          Suscríbete a la comunidad que te interese en tu Google Calendar personal — a partir de ahí, cualquier concierto nuevo que añadamos aparecerá también en tu calendario, sin tener que volver a esta página. Pulsando cada botón se abre directamente el diálogo de Google Calendar para añadir ese calendario al tuyo.
+        </p>
+        <GoogleCalendarSubscribe />
+      </section>
+    </div>
+  </div>
+</Layout>
+
+<style>
+  .guide-inner {
+    max-width: var(--max-width-site, 1280px);
+    margin: 0 auto;
+    padding: var(--space-2xl, 4rem) var(--space-lg, 1.5rem) var(--space-3xl, 6rem);
+  }
+
+  .guide-title {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(1.75rem, 3vw + 1rem, 2.75rem);
+    letter-spacing: -0.02em;
+    color: var(--color-ink);
+    margin: 0 0 0.5rem;
+  }
+
+  .guide-lede {
+    max-width: 60ch;
+    color: var(--color-ink-2);
+    margin: 0 0 var(--space-xl, 2.5rem);
+  }
+
+  .guide-warning {
+    padding: 1rem 1.2rem;
+    border-radius: 10px;
+    border: 1px solid var(--color-rule);
+    background: var(--color-paper-2);
+    color: var(--color-ink-2);
+    font-size: 0.9375rem;
+  }
+
+  .guide-warning code {
+    color: var(--color-accent);
+  }
+
+  .guide-subscribe {
+    margin-top: var(--space-2xl, 4rem);
+    padding-top: var(--space-xl, 2.5rem);
+    border-top: 1px solid var(--color-rule);
+  }
+
+  .guide-subscribe-title {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 1.25rem;
+    letter-spacing: -0.01em;
+    color: var(--color-ink);
+    margin: 0 0 0.5rem;
+  }
+
+  .guide-subscribe-text {
+    max-width: 65ch;
+    color: var(--color-ink-2);
+    line-height: 1.6;
+    margin: 0 0 1.25rem;
+  }
+</style>

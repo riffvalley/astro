@@ -7,11 +7,30 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "astro build && pagefind --site dist --output-path dist/pagefind",
     "preview": "astro preview",
     "astro": "astro"
   },
   "dependencies": {
-    "astro": "^6.0.1"
+    "@astrojs/netlify": "^7.0.1",
+    "@tailwindcss/vite": "^4.2.1",
+    "astro": "^6.0.1",
+    "d3-geo": "^3.1.1",
+    "es-atlas": "^0.6.0",
+    "motion": "^12.43.0",
+    "tailwindcss": "^4.2.1",
+    "topojson-client": "^3.1.0",
+    "vue": "^3.5.40",
+    "world-atlas": "^2.0.2"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.9",
+    "@astrojs/vue": "^7.0.1",
+    "@types/d3-geo": "^3.1.0",
+    "@types/geojson": "^7946.0.16",
+    "@types/topojson-client": "^3.1.5",
+    "@types/topojson-specification": "^1.0.5",
+    "pagefind": "^1.5.2",
+    "typescript": "^5.9.3"
   }
 }

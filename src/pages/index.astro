@@ -1,11 +1,553 @@
 ---
-import Welcome from '../components/Welcome.astro';
 import Layout from '../layouts/Layout.astro';
+import LatestGrid from '../components/LatestGrid.astro';
+import CategoryRail from '../components/CategoryRail.astro';
+import ReviewsRail from '../components/ReviewsRail.astro';
+import MonthlyAlbumsSpotlight from '../components/MonthlyAlbumsSpotlight.astro';
+import RedactoresGrid from '../components/RedactoresGrid.astro';
+import SpotifyJukebox from '../components/SpotifyJukebox.astro';
+import InstagramGridIsland from '../components/vue/InstagramGridIsland.vue';
+import TelegramGridIsland from '../components/vue/TelegramGridIsland.vue';
+import AgendaCalendarIsland from '../components/vue/AgendaCalendarIsland.vue';
+import { getAllPosts, getCategories, getRedactores, extractReviewScore, extractHighlightedBands } from '../lib/wordpress';
+import { calendars as agendaCalendars } from '../lib/agendaCalendars';
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+const [posts, categories, redactores] = await Promise.all([getAllPosts(), getCategories(), getRedactores()]);
+
+const today = new Date();
+const agendaYear = today.getFullYear();
+const agendaMonth = today.getMonth() + 1;
+// El componente en modo `fetch-client` pide sus propios datos por fetch al
+// montarse — este placeholder solo evita un parpadeo con el mapa vacío
+// mientras llega la respuesta real de /api/spain-map.json.
+const emptySpainMap = { width: 613, height: 544, shapes: [], compositionBorder: '' };
+
+const gridPosts = posts.slice(0, 6);
+
+const usedIds = new Set(gridPosts.map(p => p.id));
+
+function findTopCategory(path: string) {
+  return categories.find(c => c.uri.replace(/\/+$/, '') === path);
+}
+
+// El post de "Mejores discos del mes" también está tagueado bajo /articulos,
+// así que se reserva su id ANTES de armar el riel de Artículos para que no
+// aparezca duplicado ahí y en su propia sección destacada.
+const discosDelMesCategory = findTopCategory('/articulos/mejores-discos/discos-del-mes');
+const discosDelMesPost = discosDelMesCategory
+  ? posts
+      .filter(p => p.categories.some(c => c.uri === discosDelMesCategory.uri))
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]
+  : undefined;
+if (discosDelMesPost) usedIds.add(discosDelMesPost.id);
+const discosDelMesBands = discosDelMesPost ? extractHighlightedBands(discosDelMesPost.content) : [];
+
+// Cada riel debe aportar contenido que no se haya visto ya arriba en la
+// página — se van marcando los posts usados a medida que se arma cada
+// riel, en el mismo orden en que aparecen dentro de la tarjeta "Actualidad".
+function railPosts(category: (typeof categories)[number] | undefined, limit = 4) {
+  if (!category) return [];
+  const fresh = posts.filter(p => p.categories.some(c => c.uri === category.uri) && !usedIds.has(p.id)).slice(0, limit);
+  fresh.forEach(p => usedIds.add(p.id));
+  return fresh;
+}
+
+// "Actualidad" agrupa un orden fijo de secciones (no las N categorías con
+// más posts, como antes) — Crónicas, Reviews, Artículos, Entrevistas y
+// Novedades, en ese orden. El nº de tarjetas de cada una varía a propósito
+// (3 / 2 / 4 / 1 / 4) para que la tarjeta no se lea como la misma
+// cuadrícula de 4 repetida cinco veces.
+const cronicasCategory = findTopCategory('/cronicas');
+const cronicasPosts = railPosts(cronicasCategory, 3);
+
+const reviewsCategory = categories.find(c => c.uri.includes('review-de-discos'));
+const reviewItems = reviewsCategory
+  ? posts
+      .filter(p => p.categories.some(c => c.uri === reviewsCategory.uri) && !usedIds.has(p.id))
+      .slice(0, 2)
+      .map(post => ({ post, score: extractReviewScore(post.content) }))
+  : [];
+reviewItems.forEach(({ post }) => usedIds.add(post.id));
+
+const articulosCategory = findTopCategory('/articulos');
+const articulosPosts = railPosts(articulosCategory, 4);
+
+// Entrevistas va destacada a 2 columnas, no como grid de 4.
+const entrevistasCategory = findTopCategory('/entrevistas');
+const entrevistasPosts = railPosts(entrevistasCategory, 2);
+
+const novedadesCategory = findTopCategory('/novedades');
+const novedadesPosts = railPosts(novedadesCategory, 4);
 ---
 
-<Layout>
-	<Welcome />
+<Layout title="Riff Valley – Música metal, rock y hardcore">
+  <div class="home bloom-canvas">
+    <div class="home-inner">
+      <h1 class="sr-only">Riff Valley — música metal, rock y hardcore</h1>
+
+      <div class="reveal" style="--i: 0">
+        <LatestGrid posts={gridPosts} />
+      </div>
+
+      <section class="reveal" style="--i: 1" aria-labelledby="rail-discos">
+        <div class="agenda-card">
+          <h2 class="agenda-card-title" id="rail-discos">Discos</h2>
+
+          <div class="banner-duo">
+            <a href="/guia-lanzamientos" class="banner-link banner-link--guide">
+              <img src="/guia-lanzamientos-icon.png" alt="" class="banner-link-media" />
+              <span class="banner-link-text">
+                <span class="banner-link-title">
+                  Accede a nuestra guía de lanzamientos <span class="banner-link-arrow" aria-hidden="true">→</span>
+                </span>
+                <span class="banner-link-subtitle">Discos de metal, rock, hardcore y mucho más en este 2026</span>
+              </span>
+            </a>
+            <span class="banner-spacer banner-spacer--guide" aria-hidden="true"></span>
+
+            <span class="banner-spacer banner-spacer--news" aria-hidden="true"></span>
+            <a href="/novedades-nacionales" class="banner-link banner-link--news">
+              <span class="banner-link-text">
+                <span class="banner-link-title">
+                  <span class="banner-link-arrow" aria-hidden="true">←</span> Novedades nacionales (España)
+                </span>
+                <span class="banner-link-subtitle">Singles, EPs y discos de las bandas de nuestro país</span>
+              </span>
+              <img src="/novedades-nacionales-icon.png" alt="" class="banner-link-media" />
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <section class="reveal agenda-section-gap" style="--i: 2" aria-labelledby="rail-agenda">
+        <div class="agenda-card">
+          <h2 class="agenda-card-title" id="rail-agenda">Agenda de conciertos</h2>
+
+          <a href="/agenda-conciertos" target="_blank" rel="noopener" class="banner-link banner-link--agenda">
+            <img src="/agenda-conciertos-icon.png" alt="" class="banner-link-media" />
+            <span class="banner-link-text">
+              <span class="banner-link-title">
+                Conciertos de metal, rock, hardcore… <span class="banner-link-arrow" aria-hidden="true">→</span>
+              </span>
+              <span class="banner-link-subtitle">Descubre la agenda más completa del panorama nacional</span>
+            </span>
+          </a>
+
+          <AgendaCalendarIsland
+            client:visible
+            navigation="selects"
+            fetchClient
+            compact
+            events={[]}
+            calendars={agendaCalendars}
+            year={agendaYear}
+            month={agendaMonth}
+            spainMap={emptySpainMap}
+          />
+
+          <a href="/como-usar-agenda" class="banner-link banner-link--news banner-link--agenda-help">
+            <span class="banner-link-text">
+              <span class="banner-link-title">
+                <span class="banner-link-arrow" aria-hidden="true">←</span> ¿Cómo usar la agenda?
+              </span>
+              <span class="banner-link-subtitle">¡Te explicamos todo aquí!</span>
+            </span>
+            <img src="/como-usar-agenda-icon.png" alt="" class="banner-link-media" />
+          </a>
+        </div>
+      </section>
+
+      <section class="reveal agenda-section-gap" style="--i: 3" aria-labelledby="rail-actualidad">
+        <div class="agenda-card">
+          <h2 class="agenda-card-title" id="rail-actualidad">Actualidad</h2>
+
+          {cronicasCategory && <CategoryRail name={cronicasCategory.name} href={cronicasCategory.uri} posts={cronicasPosts} columns={3} />}
+          {reviewsCategory && reviewItems.length > 0 && <ReviewsRail items={reviewItems} href={reviewsCategory.uri} columns={2} />}
+          {articulosCategory && <CategoryRail name={articulosCategory.name} href={articulosCategory.uri} posts={articulosPosts} columns={4} />}
+          {entrevistasCategory && (
+            <CategoryRail
+              name={entrevistasCategory.name}
+              href={entrevistasCategory.uri}
+              posts={entrevistasPosts}
+              columns={2}
+              cardSize="lg"
+              showExcerpt
+              spotlight
+            />
+          )}
+          {novedadesCategory && <CategoryRail name={novedadesCategory.name} href={novedadesCategory.uri} posts={novedadesPosts} columns={4} />}
+          {discosDelMesPost && discosDelMesCategory && (
+            <MonthlyAlbumsSpotlight post={discosDelMesPost} bands={discosDelMesBands} href={discosDelMesCategory.uri} />
+          )}
+        </div>
+      </section>
+
+      {redactores.length > 0 && (
+        <section class="reveal agenda-section-gap" style="--i: 4" aria-labelledby="rail-redactores">
+          <div class="agenda-card">
+            <h2 class="agenda-card-title" id="rail-redactores">Redactores</h2>
+            <RedactoresGrid redactores={redactores} />
+          </div>
+        </section>
+      )}
+
+      <section class="reveal agenda-section-gap" style="--i: 5" aria-labelledby="rail-spotify">
+        <div class="agenda-card">
+          <h2 class="agenda-card-title" id="rail-spotify">Spotify</h2>
+
+          <a href="/listas-spotify" class="banner-link banner-link--agenda">
+            <img src="/spotify-jukebox-icon.png" alt="" class="banner-link-media" />
+            <span class="banner-link-text">
+              <span class="banner-link-title">
+                Descubre nuestra sección de Spotify <span class="banner-link-arrow" aria-hidden="true">→</span>
+              </span>
+              <span class="banner-link-subtitle">Listas de géneros, festivales y de nuestros redactores para que descubras horas de música</span>
+            </span>
+          </a>
+
+          <SpotifyJukebox />
+
+          <a href="https://open.spotify.com/user/vy0sh3a649tix6bfajzstx5xq" target="_blank" rel="noopener" class="banner-link banner-link--news banner-link--agenda-help">
+            <span class="banner-link-text">
+              <span class="banner-link-title">
+                <span class="banner-link-arrow" aria-hidden="true">←</span> Síguenos en Spotify
+              </span>
+              <span class="banner-link-subtitle">Estate atento a todas las listas que vamos sacando</span>
+            </span>
+            <img src="/spotify-logo-icon.png" alt="" class="banner-link-media" />
+          </a>
+        </div>
+      </section>
+
+      <section class="reveal agenda-section-gap" style="--i: 6" aria-labelledby="rail-social">
+        <div class="agenda-card">
+          <h2 class="agenda-card-title" id="rail-social">Redes</h2>
+
+          <div class="phone-trio">
+            <InstagramGridIsland client:visible />
+            <TelegramGridIsland client:visible />
+            <TelegramGridIsland client:visible />
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
 </Layout>
+
+<script>
+  import { animate } from 'motion';
+
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (!reduceMotion) {
+    document.querySelectorAll<HTMLAnchorElement>('.banner-link').forEach(link => {
+      const icon = link.querySelector<HTMLElement>('.banner-link-media');
+      const arrow = link.querySelector<HTMLElement>('.banner-link-arrow');
+
+      // La tarjeta de novedades apunta a la izquierda — todo (icono y
+      // flecha) se mueve hacia ese lado contrario, en espejo.
+      const isNews = link.classList.contains('banner-link--news');
+      const tilt = isNews ? 5 : -5;
+      const arrowShift = isNews ? -10 : 10;
+
+      const bounceRotate = isNews ? -25 : 25;
+
+      link.addEventListener('mouseenter', () => {
+        if (icon) {
+          animate(
+            icon,
+            { transform: `scale(1.12) rotate(${tilt}deg) translateY(-6px)` },
+            { type: 'spring', stiffness: 300, damping: 12 }
+          );
+        }
+        if (arrow) {
+          // Rebote exagerado: se pasa de largo y vuelve, en vez de deslizar
+          // sin más — de ahí la secuencia de tres keyframes.
+          animate(
+            arrow,
+            {
+              transform: [
+                'translateX(0) rotate(0deg)',
+                `translateX(${arrowShift * 1.6}px) rotate(${bounceRotate}deg)`,
+                `translateX(${arrowShift}px) rotate(0deg)`,
+              ],
+            },
+            { duration: 0.55 }
+          );
+        }
+      });
+
+      link.addEventListener('mouseleave', () => {
+        if (icon) {
+          animate(icon, { transform: 'scale(1) rotate(0deg) translateY(0px)' }, { type: 'spring', stiffness: 320, damping: 22 });
+        }
+        if (arrow) {
+          animate(arrow, { transform: 'translateX(0) rotate(0deg)' }, { type: 'spring', stiffness: 260, damping: 16 });
+        }
+      });
+    });
+  }
+</script>
+
+<style>
+  .home-inner {
+    max-width: var(--max-width-site, 1280px);
+    margin: 0 auto;
+    padding: var(--space-2xl, 4rem) var(--space-lg, 1.5rem) var(--space-3xl, 6rem);
+  }
+
+  .home-inner > .reveal + .reveal {
+    margin-top: var(--space-2xl, 4rem);
+  }
+
+  /* La agenda es su propia tarjeta con calendario y filtros — necesita más
+     aire respecto al bloque de "Discos" de arriba que el resto de rieles,
+     que solo son una fila de tarjetas cada uno. */
+  .home-inner > .reveal + .agenda-section-gap {
+    margin-top: 5rem;
+  }
+
+  /* Cada enlace vive en su propia fila del grid, ocupando solo una
+     columna — la otra columna de esa fila queda en blanco (rellena por un
+     spacer invisible que solo aporta el borde, para que la línea cruce
+     toda la fila). Así "guía de lanzamientos" cae arriba-izquierda con
+     borde superior fino, y "novedades nacionales" abajo-derecha con
+     borde inferior fino — ambos bordes atraviesan también el hueco. */
+  /* column-gap a 0 para que el borde de cada fila (repartido entre el
+     link y su spacer, ver más abajo) quede como una única línea
+     continua en vez de partirse en dos tramos con un hueco en medio. */
+  .banner-duo {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 0;
+    row-gap: 1.25rem;
+  }
+
+  .banner-link--guide {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .banner-spacer--guide {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .banner-spacer--news {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .banner-link--news {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .banner-link--guide,
+  .banner-spacer--guide {
+    border-top: 1px solid var(--color-rule);
+    padding-top: 1.5rem;
+  }
+
+  .banner-link {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    text-decoration: none;
+  }
+
+  /* En "novedades nacionales" todo el grupo (flecha, título, icono) se
+     empuja al extremo derecho de la fila, así el icono queda pegado al
+     mismo "final" que el icono de "guía" queda pegado al inicio. */
+  .banner-link--news {
+    justify-content: flex-end;
+  }
+
+  .banner-link-media {
+    flex: 0 0 auto;
+    /* Ancho automático según el ratio real de cada icono — con un ancho
+       fijo, un icono más estrecho que la caja deja hueco vacío junto al
+       texto en vez de que ambos queden pegados. */
+    width: auto;
+    max-width: 40%;
+    height: 6.5rem;
+    object-fit: contain;
+    object-position: left center;
+  }
+
+  .banner-link--news .banner-link-media {
+    object-position: right center;
+  }
+
+  /* Placeholder (todavía sin imagen real): caja neutra con borde. En
+     cuanto .banner-link-media es una <img> con contenido propio, estas
+     reglas no aportan nada visible (fondo/objeto ya no las necesita). */
+  span.banner-link-media {
+    border-radius: 10px;
+    background: var(--color-paper-3);
+    border: 1px solid var(--color-rule);
+    transition: border-color 200ms var(--ease-out, ease);
+  }
+
+  .banner-link:hover span.banner-link-media {
+    border-color: var(--color-accent);
+  }
+
+  .banner-link-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    min-width: 0;
+  }
+
+  .banner-link--news .banner-link-text {
+    align-items: flex-end;
+    text-align: right;
+  }
+
+  .banner-link-title {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(1.25rem, 1.7vw + 0.7rem, 1.75rem);
+    letter-spacing: -0.01em;
+    color: var(--color-ink);
+    white-space: nowrap;
+    transition: color 160ms var(--ease-out, ease);
+  }
+
+  .banner-link-subtitle {
+    font-family: var(--font-body);
+    font-size: 0.9375rem;
+    color: var(--color-muted);
+  }
+
+  .banner-link-arrow {
+    display: inline-block;
+    flex-shrink: 0;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(1.25rem, 1.7vw + 0.7rem, 1.75rem);
+    color: var(--color-ink);
+    transition: color 160ms var(--ease-out, ease);
+  }
+
+  .banner-link:hover .banner-link-title,
+  .banner-link:hover .banner-link-arrow {
+    color: var(--color-accent);
+  }
+
+  @media (max-width: 40rem) {
+    .banner-duo {
+      grid-template-columns: 1fr;
+    }
+
+    .banner-link--guide,
+    .banner-link--news {
+      grid-column: 1;
+      grid-row: auto;
+    }
+
+    .banner-spacer--guide,
+    .banner-spacer--news {
+      display: none;
+    }
+  }
+
+  .rail { margin-top: var(--space-2xl, 4rem); }
+
+  .rail-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-md, 1rem);
+    margin-bottom: var(--space-md, 1rem);
+  }
+
+  .rail-title {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 1.125rem;
+    letter-spacing: -0.01em;
+    color: var(--color-ink);
+    margin: 0;
+  }
+
+  /* Tarjeta que agrupa "Discos" (guía + novedades) y, aparte, "Agenda de
+     conciertos" — un contorno propio con jerarquía clara en vez de que
+     ambos bloques floten sueltos uno detrás de otro sin ninguna relación
+     visual entre el título y su contenido. */
+  .agenda-card {
+    border: 1px solid var(--color-rule);
+    border-radius: 20px;
+    background: var(--color-paper-2);
+    padding: 1.75rem 1.75rem 2rem;
+  }
+
+  .agenda-card-title {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(1.5rem, 2vw + 1rem, 2rem);
+    letter-spacing: -0.02em;
+    color: var(--color-ink);
+    margin: 0 0 1.5rem;
+  }
+
+  /* .rail/.reviews-rail/.rail-title vienen del DOM que renderizan
+     CategoryRail.astro y ReviewsRail.astro — Astro no deja que un selector
+     normal del padre alcance el marcado de un componente hijo (cada uno
+     lleva su propio scope), hace falta :global() para que esto aplique. */
+
+  /* El primer riel de "Actualidad" ya tiene el aire que le da el título de
+     arriba — sin esto arrastra su propio margin-top (4rem) y queda un
+     hueco doble antes de Crónicas. Los rieles siguientes sí necesitan su
+     separación normal entre ellos. */
+  :global(.agenda-card-title + .rail),
+  :global(.agenda-card-title + .reviews-rail) {
+    margin-top: 0;
+  }
+
+  /* Un acento de color por riel (alternando los dos tonos de marca) para
+     que "Actualidad" no se lea como la misma fila repetida cinco veces.
+     :nth-of-type cuenta por posición de <section> entre TODOS los hermanos
+     (Crónicas=1, Reviews=2, Artículos=3, Entrevistas=4, Novedades=5) — de
+     ahí que las posiciones de .rail salten el 2 (que es .reviews-rail). */
+  :global(#rail-actualidad ~ .rail:nth-of-type(1) .rail-title), /* Crónicas */
+  :global(#rail-actualidad ~ .rail:nth-of-type(4) .rail-title) { /* Entrevistas */
+    border-left: 4px solid var(--color-accent);
+    padding-left: 0.7rem;
+  }
+
+  :global(#rail-actualidad ~ .rail:nth-of-type(3) .rail-title), /* Artículos */
+  :global(#rail-actualidad ~ .rail:nth-of-type(5) .rail-title) { /* Novedades */
+    border-left: 4px solid var(--color-accent-2);
+    padding-left: 0.7rem;
+  }
+
+  /* Dentro de la tarjeta, el zig-zag (icono + título + flecha + regla fina
+     continua) de guía/novedades y de los dos banners de la agenda. */
+  .banner-link--agenda {
+    border-top: 1px solid var(--color-rule);
+    padding-top: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .banner-link--agenda-help {
+    border-bottom: none;
+    padding-bottom: 0;
+    margin-top: 1.5rem;
+  }
+
+  .phone-trio {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: start;
+    gap: var(--space-lg, 1.5rem);
+  }
+
+  @media (max-width: 45rem) {
+    .phone-trio { grid-template-columns: 1fr; justify-items: center; }
+  }
+</style>
