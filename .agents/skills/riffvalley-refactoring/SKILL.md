@@ -21,6 +21,8 @@ riffvalley-refactoring
         └── riffvalley-testing            protección del comportamiento
 ```
 
+`riffvalley-git-workflow` gobierna la rama, commit, PR y ciclo de merge de un refactor; esta skill mantiene la autoridad sobre el slice, riesgo y preservación de comportamiento.
+
 ## Precedencia
 
 1. Las instrucciones explícitas del usuario prevalecen.
