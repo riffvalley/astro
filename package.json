@@ -9,7 +9,10 @@
     "dev": "astro dev",
     "build": "astro build && pagefind --site dist --output-path dist/pagefind",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "typecheck": "astro check && vue-tsc --noEmit"
   },
   "dependencies": {
     "@astrojs/netlify": "^7.0.1",
@@ -25,12 +28,15 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.9",
-    "@astrojs/vue": "^7.0.1",
+    "@astrojs/vue": "^6.0.1",
     "@types/d3-geo": "^3.1.0",
     "@types/geojson": "^7946.0.16",
     "@types/topojson-client": "^3.1.5",
     "@types/topojson-specification": "^1.0.5",
     "pagefind": "^1.5.2",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1",
+    "vitest": "^4.1.11",
+    "vue-tsc": "^3.3.10"
   }
 }

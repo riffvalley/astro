@@ -11,10 +11,15 @@ pnpm install    # instalar dependencias
 pnpm dev        # servidor de desarrollo en localhost:4321
 pnpm build      # build de producción a ./dist/
 pnpm preview    # previsualizar el build de producción en local
+pnpm test       # tests unitarios en modo watch
+pnpm test:run   # tests unitarios, una sola ejecución
+pnpm typecheck  # comprobación de Astro, TypeScript y componentes Vue
 pnpm astro ...  # CLI de Astro (p.ej. `pnpm astro check` para el type checking)
 ```
 
-No hay test suite ni linter configurados en este repo.
+Los tests se colocan junto al código que protegen (`foo.ts` → `foo.test.ts`).
+Vitest usa su entorno Node por defecto; no hay DOM global ni infraestructura
+de componentes/E2E hasta que un comportamiento concreto la necesite.
 
 ### Iterar sobre cambios — usa el dev server, no un build completo
 

@@ -8,10 +8,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 pnpm dev        # Start dev server at localhost:4321
 pnpm build      # Build production site to ./dist/
 pnpm preview    # Preview production build locally
+pnpm test       # Run unit tests in watch mode
+pnpm test:run   # Run unit tests once
+pnpm typecheck  # Type-check Astro, TypeScript, and Vue components
 pnpm astro ...  # Run Astro CLI commands directly (e.g. `pnpm astro check` for type checking)
 ```
 
-No test suite or linter is configured in this repo.
+## Testing and CI
+
+Unit tests use Vitest and live next to the code they protect (`foo.ts` →
+`foo.test.ts`). Use `pnpm test:run` for a deterministic local run and
+`pnpm typecheck` to check Astro, TypeScript, and Vue files.
+
+`.github/workflows/quality.yml` runs a frozen pnpm install, typecheck, and
+unit tests for pull requests. It intentionally does not run the full build.
 
 ### Iterating on changes — use the dev server, not a full build
 
@@ -25,6 +35,14 @@ per cache lifetime rather than once per restart.
 **Ask the user before running `pnpm build`** (a full static build) — it's
 slow and normally only needed to check the production build itself or right
 before a deploy, not for routine iteration.
+
+## Agent Skills
+
+Engineering policies live in `.agents/skills/`. Claude Code exposes the same
+skills through `.claude/skills/` symlinks. For project-specific decisions,
+`riffvalley-*` skills take precedence over generic framework/tooling skills in
+their respective domains. Load relevant policies progressively; do not read or
+apply every skill indiscriminately.
 
 ## Architecture
 
