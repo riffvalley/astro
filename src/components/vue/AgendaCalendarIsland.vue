@@ -8,6 +8,11 @@ import type {
   SpainMap,
 } from '../../features/agenda/model/agenda.types';
 import { buildCalendarGrid } from '../../features/agenda/utils/calendarGrid';
+import {
+  countEventsByCalendarName,
+  filterEventsByCalendarNames,
+  groupEventsByCalendar,
+} from '../../features/agenda/utils/eventDerivations';
 import { eventDateKey } from '../../features/agenda/utils/eventDateKey';
 import { groupEventsByDay } from '../../features/agenda/utils/eventGrouping';
 
@@ -103,13 +108,7 @@ const calendarByName = computed(() => new Map(props.calendars.map(c => [c.name, 
 
 // Número de conciertos del mes cargado por comunidad, para el listado de
 // filtros — sin tener en cuenta qué está marcado, es el total real.
-const eventCountByCalendarName = computed(() => {
-  const counts = new Map<string, number>();
-  for (const ev of currentEvents.value) {
-    counts.set(ev.calendarName, (counts.get(ev.calendarName) ?? 0) + 1);
-  }
-  return counts;
-});
+const eventCountByCalendarName = computed(() => countEventsByCalendarName(currentEvents.value));
 
 // Banderas oficiales (Wikimedia Commons, dominio público / uso libre como
 // símbolo oficial), servidas como estáticos desde /public/flags.
@@ -168,7 +167,7 @@ function onFiltersDialogClick(e: MouseEvent) {
   if (e.target === filtersDialog.value) closeFilters();
 }
 
-const visibleEvents = computed(() => currentEvents.value.filter(e => checked.value.has(e.calendarName)));
+const visibleEvents = computed(() => filterEventsByCalendarNames(currentEvents.value, checked.value));
 
 const eventsByDay = computed(() => groupEventsByDay(visibleEvents.value));
 
@@ -203,16 +202,7 @@ const selectedDayEvents = computed(() => (selectedDay.value ? eventsByDay.value.
 
 // Agrupados por comunidad, en el mismo orden que el listado de filtros — así
 // no hace falta repetir el nombre de la comunidad en cada evento.
-const selectedDayGroups = computed(() => {
-  const byRegion = new Map<string, CalendarEvent[]>();
-  for (const ev of selectedDayEvents.value) {
-    if (!byRegion.has(ev.calendarName)) byRegion.set(ev.calendarName, []);
-    byRegion.get(ev.calendarName)!.push(ev);
-  }
-  return props.calendars
-    .filter(c => byRegion.has(c.name))
-    .map(c => ({ calendarName: c.name, events: byRegion.get(c.name)! }));
-});
+const selectedDayGroups = computed(() => groupEventsByCalendar(selectedDayEvents.value, props.calendars));
 
 const dayDialog = ref<HTMLDialogElement | null>(null);
 
