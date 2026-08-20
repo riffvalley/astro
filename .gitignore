@@ -30,4 +30,6 @@ pnpm-debug.log*
 .wp-cache/
 
 # Estado local de Claude Code (sesión/permisos de esta máquina, no config de equipo)
-.claude/
+.claude/*
+!.claude/skills/
+!.claude/skills/**
