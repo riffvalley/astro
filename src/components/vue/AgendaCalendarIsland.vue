@@ -9,6 +9,7 @@ import type {
 } from '../../features/agenda/model/agenda.types';
 import { buildCalendarGrid } from '../../features/agenda/utils/calendarGrid';
 import { eventDateKey } from '../../features/agenda/utils/eventDateKey';
+import { groupEventsByDay } from '../../features/agenda/utils/eventGrouping';
 
 const props = withDefaults(
   defineProps<{
@@ -169,15 +170,7 @@ function onFiltersDialogClick(e: MouseEvent) {
 
 const visibleEvents = computed(() => currentEvents.value.filter(e => checked.value.has(e.calendarName)));
 
-const eventsByDay = computed(() => {
-  const map = new Map<string, CalendarEvent[]>();
-  for (const ev of visibleEvents.value) {
-    const key = eventDateKey(ev.start);
-    if (!map.has(key)) map.set(key, []);
-    map.get(key)!.push(ev);
-  }
-  return map;
-});
+const eventsByDay = computed(() => groupEventsByDay(visibleEvents.value));
 
 // Días con más conciertos pintan más intenso (estilo mapa de calor) para que
 // el mes no se vea todo con el mismo tono de rosa — el color transmite algo.
