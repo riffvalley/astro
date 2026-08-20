@@ -1,4 +1,4 @@
-type CalendarGridDay = {
+export type CalendarGridDay = {
   key: string;
   day: number;
   inMonth: boolean;
