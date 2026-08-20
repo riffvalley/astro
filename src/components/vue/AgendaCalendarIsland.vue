@@ -7,6 +7,7 @@ import type {
   RegionCalendar,
   SpainMap,
 } from '../../features/agenda/model/agenda.types';
+import { fetchAgendaMap, fetchAgendaMonth } from '../../features/agenda/api/agendaClient';
 import { buildCalendarGrid } from '../../features/agenda/utils/calendarGrid';
 import {
   countEventsByCalendarName,
@@ -74,9 +75,7 @@ const monthOptions = [
 async function fetchMonthEvents() {
   loadingEvents.value = true;
   try {
-    const res = await fetch(`/api/agenda-resumen.json?year=${currentYear.value}&month=${currentMonth.value}`);
-    const data = await res.json();
-    currentEvents.value = data.events ?? [];
+    currentEvents.value = await fetchAgendaMonth({ year: currentYear.value, month: currentMonth.value });
   } catch {
     currentEvents.value = [];
   } finally {
@@ -91,8 +90,7 @@ if (props.fetchClient) {
     // arranca con placeholders vacíos porque la portada sigue siendo
     // estática y no puede llamar a la API de Google en el servidor.
     if (props.spainMap.shapes.length === 0) {
-      fetch('/api/spain-map.json')
-        .then(r => r.json())
+      fetchAgendaMap()
         .then(m => { currentSpainMap.value = m; })
         .catch(() => {});
     }
