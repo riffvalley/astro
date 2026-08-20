@@ -45,6 +45,19 @@ describe('fetchAgendaMonth', () => {
 
     await expect(fetchAgendaMonth({ year: 2026, month: 8 })).rejects.toThrow('network failure');
   });
+
+  it('forwards an AbortSignal to the monthly request', async () => {
+    const controller = new AbortController();
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(new Response('{"events":[]}'));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await fetchAgendaMonth({ year: 2026, month: 8 }, { signal: controller.signal });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/agenda-resumen.json?year=2026&month=8',
+      { signal: controller.signal }
+    );
+  });
 });
 
 describe('fetchAgendaMap', () => {

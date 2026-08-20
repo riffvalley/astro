@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch, onMounted } from 'vue';
+import { computed, ref, watch, onMounted, onUnmounted } from 'vue';
 
 import type {
   CalendarEvent,
@@ -8,6 +8,7 @@ import type {
   SpainMap,
 } from '../../features/agenda/model/agenda.types';
 import { fetchAgendaMap, fetchAgendaMonth } from '../../features/agenda/api/agendaClient';
+import { createAgendaMonthRequestCoordinator } from '../../features/agenda/api/agendaMonthRequestCoordinator';
 import { buildCalendarGrid } from '../../features/agenda/utils/calendarGrid';
 import {
   countEventsByCalendarName,
@@ -51,6 +52,7 @@ const currentMonth = ref(props.month);
 const currentEvents = ref<CalendarEvent[]>(props.events);
 const currentSpainMap = ref<SpainMap>(props.spainMap);
 const loadingEvents = ref(false);
+const monthRequests = createAgendaMonthRequestCoordinator();
 
 const displayMonthLabel = computed(() =>
   new Date(currentYear.value, currentMonth.value - 1, 1).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
@@ -73,13 +75,20 @@ const monthOptions = [
 ];
 
 async function fetchMonthEvents() {
+  const request = monthRequests.start();
   loadingEvents.value = true;
   try {
-    currentEvents.value = await fetchAgendaMonth({ year: currentYear.value, month: currentMonth.value });
+    const events = await fetchAgendaMonth(
+      { year: currentYear.value, month: currentMonth.value },
+      { signal: request.signal }
+    );
+    if (!request.isCurrent()) return;
+    currentEvents.value = events;
   } catch {
+    if (!request.isCurrent()) return;
     currentEvents.value = [];
   } finally {
-    loadingEvents.value = false;
+    if (request.settle()) loadingEvents.value = false;
   }
 }
 
@@ -100,6 +109,8 @@ if (props.fetchClient) {
   });
 
   watch([currentYear, currentMonth], fetchMonthEvents);
+
+  onUnmounted(() => monthRequests.cancel());
 }
 
 const calendarByName = computed(() => new Map(props.calendars.map(c => [c.name, c])));
