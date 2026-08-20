@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed, ref, watch, onMounted } from 'vue';
 
+import { buildCalendarGrid } from '../../features/agenda/utils/calendarGrid';
+
 interface RegionCalendar {
   name: string;
   id: string;
@@ -230,31 +232,9 @@ function dayHeatStyle(count: number): string {
 
 // Grid de 6 semanas (42 días) empezando en lunes, cubriendo el mes con
 // margen de los meses adyacentes para completar semanas.
-const weeks = computed(() => {
-  const first = new Date(currentYear.value, currentMonth.value - 1, 1);
-  const startOffset = (first.getDay() + 6) % 7; // lunes = 0
-  const gridStart = new Date(first);
-  gridStart.setDate(first.getDate() - startOffset);
-
-  const days: { key: string; day: number; inMonth: boolean; isToday: boolean }[] = [];
-  const todayKey = eventDateKey(new Date().toISOString());
-
-  for (let i = 0; i < 42; i++) {
-    const d = new Date(gridStart);
-    d.setDate(gridStart.getDate() + i);
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-    days.push({
-      key,
-      day: d.getDate(),
-      inMonth: d.getMonth() === currentMonth.value - 1,
-      isToday: key === todayKey,
-    });
-  }
-
-  const result = [];
-  for (let i = 0; i < 42; i += 7) result.push(days.slice(i, i + 7));
-  return result;
-});
+const weeks = computed(() =>
+  buildCalendarGrid(currentYear.value, currentMonth.value, eventDateKey(new Date().toISOString()))
+);
 
 const weekdayLabels = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
 
