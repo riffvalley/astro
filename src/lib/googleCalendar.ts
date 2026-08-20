@@ -12,21 +12,79 @@ export const GOOGLE_CALENDAR_REQUEST_TIMEOUT_MS = 5_000;
 
 export type { CalendarEvent, RegionCalendar } from '../features/agenda/model/agenda.types';
 
+interface GoogleEventDate {
+  date?: string;
+  dateTime?: string;
+}
+
+interface GoogleCalendarEvent {
+  id: string;
+  summary?: string;
+  location?: string;
+  htmlLink: string;
+  start: GoogleEventDate;
+  end: GoogleEventDate;
+}
+
 interface GoogleEventsResponse {
-  items?: {
-    id: string;
-    summary?: string;
-    location?: string;
-    htmlLink: string;
-    start: { date?: string; dateTime?: string };
-    end: { date?: string; dateTime?: string };
-  }[];
-  error?: { message: string };
+  items: GoogleCalendarEvent[];
 }
 
 type CalendarFetchResult =
   | { status: 'success'; events: CalendarEvent[] }
   | { status: 'failed' };
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function parseEventDate(value: unknown): GoogleEventDate | null {
+  if (!isRecord(value)) return null;
+
+  const { date, dateTime } = value;
+  if (date !== undefined && typeof date !== 'string') return null;
+  if (dateTime !== undefined && typeof dateTime !== 'string') return null;
+  if (date === undefined && dateTime === undefined) return null;
+
+  return { date, dateTime };
+}
+
+function parseGoogleCalendarEvent(value: unknown): GoogleCalendarEvent | null {
+  if (!isRecord(value)) return null;
+
+  const { id, summary, location, htmlLink } = value;
+  if (typeof id !== 'string' || typeof htmlLink !== 'string') return null;
+  if (summary !== undefined && typeof summary !== 'string') return null;
+  if (location !== undefined && typeof location !== 'string') return null;
+
+  const start = parseEventDate(value.start);
+  const end = parseEventDate(value.end);
+  if (!start || !end) return null;
+
+  return { id, summary, location, htmlLink, start, end };
+}
+
+function parseGoogleEventsResponse(value: unknown): GoogleEventsResponse | null {
+  if (!isRecord(value) || !Array.isArray(value.items)) return null;
+
+  const items: GoogleCalendarEvent[] = [];
+  for (const item of value.items) {
+    const parsedItem = parseGoogleCalendarEvent(item);
+    if (!parsedItem) return null;
+    items.push(parsedItem);
+  }
+
+  return { items };
+}
+
+function hasGoogleError(value: unknown): boolean {
+  return isRecord(value) && Boolean(value.error);
+}
+
+function googleErrorMessage(value: unknown): string | undefined {
+  if (!isRecord(value) || !isRecord(value.error)) return undefined;
+  return typeof value.error.message === 'string' ? value.error.message : undefined;
+}
 
 async function fetchOneCalendar(
   calendar: RegionCalendar,
@@ -47,16 +105,22 @@ async function fetchOneCalendar(
 
   try {
     const res = await fetch(url, { signal: controller.signal });
-    const data = (await res.json()) as GoogleEventsResponse;
+    const data: unknown = await res.json();
 
-    if (!res.ok || data.error) {
-      console.warn(`[googleCalendar] Fallo leyendo "${calendar.name}": ${data.error?.message ?? res.statusText}`);
+    if (!res.ok || hasGoogleError(data)) {
+      console.warn(`[googleCalendar] Fallo leyendo "${calendar.name}": ${googleErrorMessage(data) ?? res.statusText}`);
+      return { status: 'failed' };
+    }
+
+    const parsedData = parseGoogleEventsResponse(data);
+    if (!parsedData) {
+      console.warn(`[googleCalendar] Fallo leyendo "${calendar.name}": respuesta malformada`);
       return { status: 'failed' };
     }
 
     return {
       status: 'success',
-      events: (data.items ?? []).map(item => ({
+      events: parsedData.items.map(item => ({
         id: item.id,
         title: item.summary ?? '(sin título)',
         start: item.start.dateTime ?? item.start.date ?? '',

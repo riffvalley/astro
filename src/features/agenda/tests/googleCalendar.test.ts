@@ -32,6 +32,10 @@ function eventsResponse(id: string, start: string): Response {
   }));
 }
 
+function jsonResponse(payload: unknown): Response {
+  return new Response(JSON.stringify(payload));
+}
+
 afterEach(() => {
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
@@ -53,6 +57,134 @@ describe('fetchRegionEvents', () => {
     const events = await fetchRegionEvents(calendars, timeMin, timeMax, 'server-only-key');
 
     expect(events.map(({ id }) => id)).toEqual(['asturias', 'galicia', 'cantabria']);
+  });
+
+  it('normalizes valid all-day and timed events and preserves optional fallbacks', async () => {
+    vi.stubGlobal('fetch', vi.fn<typeof fetch>().mockResolvedValue(jsonResponse({
+      items: [
+        {
+          id: 'all-day',
+          htmlLink: 'https://example.com/all-day',
+          start: { date: '2026-08-20' },
+          end: { date: '2026-08-21' },
+        },
+        {
+          id: 'timed',
+          summary: 'Timed concert',
+          location: 'Venue',
+          htmlLink: 'https://example.com/timed',
+          start: { dateTime: '2026-08-20T20:00:00+02:00' },
+          end: { dateTime: '2026-08-20T22:00:00+02:00' },
+        },
+      ],
+    })));
+
+    const events = await fetchRegionEvents([calendars[0]], timeMin, timeMax, 'server-only-key');
+
+    expect(events).toEqual([
+      {
+        id: 'all-day',
+        title: '(sin título)',
+        start: '2026-08-20',
+        end: '2026-08-21',
+        allDay: true,
+        location: null,
+        htmlLink: 'https://example.com/all-day',
+        calendarName: 'Cantabria',
+        calendarColor: '#DDCC77',
+      },
+      {
+        id: 'timed',
+        title: 'Timed concert',
+        start: '2026-08-20T20:00:00+02:00',
+        end: '2026-08-20T22:00:00+02:00',
+        allDay: false,
+        location: 'Venue',
+        htmlLink: 'https://example.com/timed',
+        calendarName: 'Cantabria',
+        calendarColor: '#DDCC77',
+      },
+    ]);
+  });
+
+  it.each([
+    ['null', null],
+    ['string', 'unexpected'],
+    ['object without items', {}],
+    ['non-array items', { items: 'unexpected' }],
+  ])('rejects a malformed response root: %s', async (_case, payload) => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    vi.stubGlobal('fetch', vi.fn<typeof fetch>().mockResolvedValue(jsonResponse(payload)));
+
+    await expect(fetchRegionEvents([calendars[0]], timeMin, timeMax, 'server-only-key'))
+      .rejects.toThrow('No se pudo obtener ningún calendario de Agenda');
+    expect(console.warn).toHaveBeenCalledWith(
+      '[googleCalendar] Fallo leyendo "Cantabria": respuesta malformada'
+    );
+  });
+
+  it('keeps valid calendars when another source returns a malformed response', async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    vi.stubGlobal('fetch', vi.fn<typeof fetch>().mockImplementation(async input => {
+      const id = calendarId(input);
+      if (id === 'asturias') return jsonResponse({ items: 'unexpected' });
+      return eventsResponse(id, id === 'cantabria'
+        ? '2026-08-20T20:00:00+02:00'
+        : '2026-08-15T20:00:00+02:00');
+    }));
+
+    const events = await fetchRegionEvents(calendars, timeMin, timeMax, 'server-only-key');
+
+    expect(events.map(({ id }) => id)).toEqual(['galicia', 'cantabria']);
+    expect(console.warn).toHaveBeenCalledWith(
+      '[googleCalendar] Fallo leyendo "Asturias": respuesta malformada'
+    );
+  });
+
+  it('rejects the complete source when one event is malformed', async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    vi.stubGlobal('fetch', vi.fn<typeof fetch>().mockImplementation(async input => {
+      const id = calendarId(input);
+      if (id === 'cantabria') {
+        return jsonResponse({
+          items: [
+            {
+              id: 'valid-but-same-source',
+              htmlLink: 'https://example.com/valid-but-same-source',
+              start: { date: '2026-08-20' },
+              end: { date: '2026-08-21' },
+            },
+            {
+              id: 'missing-link',
+              start: { date: '2026-08-22' },
+              end: { date: '2026-08-23' },
+            },
+          ],
+        });
+      }
+      return eventsResponse(id, '2026-08-15T20:00:00+02:00');
+    }));
+
+    const events = await fetchRegionEvents(calendars.slice(0, 2), timeMin, timeMax, 'server-only-key');
+
+    expect(events.map(({ id }) => id)).toEqual(['asturias']);
+    expect(console.warn).toHaveBeenCalledWith(
+      '[googleCalendar] Fallo leyendo "Cantabria": respuesta malformada'
+    );
+  });
+
+  it('preserves total failure when every source fails or is malformed', async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    vi.stubGlobal('fetch', vi.fn<typeof fetch>().mockImplementation(async input => {
+      const id = calendarId(input);
+      if (id === 'cantabria') return jsonResponse({});
+      if (id === 'asturias') throw new TypeError('network failure');
+      return jsonResponse({ items: [{ id: 'missing-required-fields' }] });
+    }));
+
+    await expect(fetchRegionEvents(calendars, timeMin, timeMax, 'server-only-key'))
+      .rejects.toThrow('No se pudo obtener ningún calendario de Agenda');
+    expect(console.warn).toHaveBeenCalledTimes(calendars.length);
   });
 
   it('keeps successful calendars when an independent source fails', async () => {
