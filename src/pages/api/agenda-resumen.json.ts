@@ -5,17 +5,21 @@
 export const prerender = false;
 
 import type { APIRoute } from 'astro';
-import type { AgendaMonthRequest, AgendaMonthResponse } from '../../features/agenda/model/agendaApi.types';
+import type { AgendaMonthResponse } from '../../features/agenda/model/agendaApi.types';
+import { parseAgendaMonthRequest } from '../../features/agenda/utils/agendaMonthRequest';
 import { fetchRegionEvents } from '../../lib/googleCalendar';
 import { calendars } from '../../lib/agendaCalendars';
 
 export const GET: APIRoute = async ({ url }) => {
-  const today = new Date();
-  const request: AgendaMonthRequest = {
-    year: Number(url.searchParams.get('year')) || today.getFullYear(),
-    month: Number(url.searchParams.get('month')) || today.getMonth() + 1,
-  };
-  const { year, month } = request;
+  const result = parseAgendaMonthRequest(url.searchParams, new Date());
+  if (!result.ok) {
+    return new Response(JSON.stringify({ error: result.error }), {
+      status: 400,
+      headers: { 'content-type': 'application/json' },
+    });
+  }
+
+  const { year, month } = result.request;
 
   const monthStart = new Date(year, month - 1, 1);
   const startOffset = (monthStart.getDay() + 6) % 7;
