@@ -5,6 +5,7 @@
 // coordenadas de un icono/logo, es la costa real proyectada. Mismo enfoque
 // (fitExtent + inset de Canarias recortado por longitud) que ya usa
 // Comunidad-bdsm/front/src/components/Map.astro para su mapa de España.
+import type { MapShape, SpainMap } from '../features/agenda/model/agenda.types';
 import { feature } from 'topojson-client';
 import { geoMercator, geoPath, type GeoProjection } from 'd3-geo';
 import type { Topology } from 'topojson-specification';
@@ -39,19 +40,7 @@ const INE_TO_CALENDAR_NAME: Record<string, string> = {
 };
 const CANARY_ISLANDS_ID = '05';
 
-export interface MapShape {
-  id: string;
-  calendarName: string;
-  d: string;
-}
-
-export interface SpainMap {
-  width: number;
-  height: number;
-  shapes: MapShape[];
-  /** Recuadro discontinuo alrededor del inset de Canarias. */
-  compositionBorder: string;
-}
+export type { MapShape, SpainMap } from '../features/agenda/model/agenda.types';
 
 // world-atlas empaqueta el territorio completo de Portugal (incluidos
 // Madeira/Azores, ~-31 a -17 de longitud) como un único MultiPolygon, que

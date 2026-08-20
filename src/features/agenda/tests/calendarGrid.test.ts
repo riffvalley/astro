@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { buildCalendarGrid } from './calendarGrid';
+import { buildCalendarGrid } from '../utils/calendarGrid';
 
 describe('buildCalendarGrid', () => {
   it('builds six Monday-first weeks with the adjacent days needed to complete the grid', () => {
