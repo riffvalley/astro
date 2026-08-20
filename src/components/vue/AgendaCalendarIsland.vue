@@ -1,38 +1,14 @@
 <script setup lang="ts">
 import { computed, ref, watch, onMounted } from 'vue';
 
+import type {
+  CalendarEvent,
+  MapShape,
+  RegionCalendar,
+  SpainMap,
+} from '../../features/agenda/model/agenda.types';
 import { buildCalendarGrid } from '../../features/agenda/utils/calendarGrid';
-
-interface RegionCalendar {
-  name: string;
-  id: string;
-  color: string;
-}
-
-interface MapShape {
-  id: string;
-  calendarName: string;
-  d: string;
-}
-
-interface SpainMap {
-  width: number;
-  height: number;
-  shapes: MapShape[];
-  compositionBorder: string;
-}
-
-interface CalendarEvent {
-  id: string;
-  title: string;
-  start: string;
-  end: string;
-  allDay: boolean;
-  location: string | null;
-  htmlLink: string;
-  calendarName: string;
-  calendarColor: string;
-}
+import { eventDateKey } from '../../features/agenda/utils/eventDateKey';
 
 const props = withDefaults(
   defineProps<{
@@ -189,14 +165,6 @@ function onFiltersDialogClose() {
 
 function onFiltersDialogClick(e: MouseEvent) {
   if (e.target === filtersDialog.value) closeFilters();
-}
-
-function eventDateKey(iso: string): string {
-  // Para eventos de día completo, "iso" ya es YYYY-MM-DD. Para eventos con
-  // hora, se usa la fecha local del navegador que ve la página.
-  if (/^\d{4}-\d{2}-\d{2}$/.test(iso)) return iso;
-  const d = new Date(iso);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
 const visibleEvents = computed(() => currentEvents.value.filter(e => checked.value.has(e.calendarName)));

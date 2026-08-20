@@ -3,25 +3,11 @@
 // demanda, ver agenda-conciertos.astro) — la API key nunca llega al
 // navegador.
 
+import type { CalendarEvent, RegionCalendar } from '../features/agenda/model/agenda.types';
+
 const CALENDAR_API_BASE = 'https://www.googleapis.com/calendar/v3/calendars';
 
-export interface RegionCalendar {
-  name: string;
-  id: string;
-  color: string;
-}
-
-export interface CalendarEvent {
-  id: string;
-  title: string;
-  start: string; // ISO date o date-time
-  end: string;
-  allDay: boolean;
-  location: string | null;
-  htmlLink: string;
-  calendarName: string;
-  calendarColor: string;
-}
+export type { CalendarEvent, RegionCalendar } from '../features/agenda/model/agenda.types';
 
 interface GoogleEventsResponse {
   items?: {
