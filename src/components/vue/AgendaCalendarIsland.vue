@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch, onMounted, onUnmounted } from 'vue';
+import { computed, ref, watch, onMounted } from 'vue';
 
 import type {
   CalendarEvent,
@@ -7,8 +7,8 @@ import type {
   RegionCalendar,
   SpainMap,
 } from '../../features/agenda/model/agenda.types';
-import { fetchAgendaMap, fetchAgendaMonth } from '../../features/agenda/api/agendaClient';
-import { createAgendaMonthRequestCoordinator } from '../../features/agenda/api/agendaMonthRequestCoordinator';
+import { fetchAgendaMap } from '../../features/agenda/api/agendaClient';
+import { useAgendaMonthEvents } from '../../features/agenda/composables/useAgendaMonthEvents';
 import { buildCalendarGrid } from '../../features/agenda/utils/calendarGrid';
 import {
   countEventsByCalendarName,
@@ -49,10 +49,12 @@ const selectedDay = ref<string | null>(null);
 
 const currentYear = ref(props.year);
 const currentMonth = ref(props.month);
-const currentEvents = ref<CalendarEvent[]>(props.events);
 const currentSpainMap = ref<SpainMap>(props.spainMap);
-const loadingEvents = ref(false);
-const monthRequests = createAgendaMonthRequestCoordinator();
+const {
+  events: currentEvents,
+  loading: loadingEvents,
+  loadMonth,
+} = useAgendaMonthEvents(props.events);
 
 const displayMonthLabel = computed(() =>
   new Date(currentYear.value, currentMonth.value - 1, 1).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
@@ -74,24 +76,6 @@ const monthOptions = [
   { value: 12, label: 'Diciembre' },
 ];
 
-async function fetchMonthEvents() {
-  const request = monthRequests.start();
-  loadingEvents.value = true;
-  try {
-    const events = await fetchAgendaMonth(
-      { year: currentYear.value, month: currentMonth.value },
-      { signal: request.signal }
-    );
-    if (!request.isCurrent()) return;
-    currentEvents.value = events;
-  } catch {
-    if (!request.isCurrent()) return;
-    currentEvents.value = [];
-  } finally {
-    if (request.settle()) loadingEvents.value = false;
-  }
-}
-
 if (props.fetchClient) {
   onMounted(async () => {
     // Si ya llegaron datos reales por props (SSR, /agenda-conciertos) no
@@ -104,13 +88,11 @@ if (props.fetchClient) {
         .catch(() => {});
     }
     if (props.events.length === 0) {
-      await fetchMonthEvents();
+      await loadMonth({ year: currentYear.value, month: currentMonth.value });
     }
   });
 
-  watch([currentYear, currentMonth], fetchMonthEvents);
-
-  onUnmounted(() => monthRequests.cancel());
+  watch([currentYear, currentMonth], ([year, month]) => loadMonth({ year, month }));
 }
 
 const calendarByName = computed(() => new Map(props.calendars.map(c => [c.name, c])));
