@@ -2,8 +2,8 @@
 import { computed } from 'vue';
 import type { Disc } from '../model/disc.types';
 import { readableTextColor } from '../../../lib/colorContrast';
-import ColorPill from '../../../components/vue/ColorPill.vue';
-import Badge from '../../../components/vue/Badge.vue';
+import ColorPill from '../../../shared/components/ColorPill.vue';
+import Badge from './Badge.vue';
 import SpotifyButton from './SpotifyButton.vue';
 
 const props = defineProps<{ disc: Disc }>();
