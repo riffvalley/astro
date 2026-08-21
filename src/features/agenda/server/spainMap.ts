@@ -5,7 +5,7 @@
 // coordenadas de un icono/logo, es la costa real proyectada. Mismo enfoque
 // (fitExtent + inset de Canarias recortado por longitud) que ya usa
 // Comunidad-bdsm/front/src/components/Map.astro para su mapa de España.
-import type { MapShape, SpainMap } from '../features/agenda/model/agenda.types';
+import type { MapShape, SpainMap } from '../model/agenda.types';
 import { feature } from 'topojson-client';
 import { geoMercator, geoPath, type GeoProjection } from 'd3-geo';
 import type { Topology } from 'topojson-specification';

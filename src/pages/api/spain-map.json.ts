@@ -3,7 +3,7 @@
 // estático — lo usa el calendario embebido en la home para no tener que
 // mandar toda la lógica de d3-geo/es-atlas/world-atlas al cliente.
 import type { APIRoute } from 'astro';
-import { buildSpainMap } from '../../lib/spainMap';
+import { buildSpainMap } from '../../features/agenda/server/spainMap';
 
 export const GET: APIRoute = () => {
   return new Response(JSON.stringify(buildSpainMap()), {

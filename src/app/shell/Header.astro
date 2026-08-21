@@ -1,8 +1,8 @@
 ---
 import Search from './Search.astro';
-import { getAllPosts } from '../lib/wordpress';
-import { buildHeaderNavigation } from '../features/editorial';
-import HeaderNavigation from '../app/shell/HeaderNavigation.astro';
+import { getAllPosts } from '../../features/editorial/api/wordpress';
+import { buildHeaderNavigation } from '../../features/editorial';
+import HeaderNavigation from './HeaderNavigation.astro';
 
 // getAllPosts() está memoizada a nivel de módulo — index.astro/[...path].astro
 // ya la llaman, así que reutiliza la misma promesa/resultado sin repetir la

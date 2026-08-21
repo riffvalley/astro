@@ -1,5 +1,5 @@
-import type { PostDetail } from '../../lib/wordpress';
-import { extractReviewScore } from '../../lib/editorialParsing';
+import type { PostDetail } from './api/wordpress';
+import { extractReviewScore } from './utils/editorialParsing';
 
 const PREVIEW_COUNT = 3;
 

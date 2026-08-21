@@ -1,5 +1,5 @@
-import type { Category, PostDetail } from '../../lib/wordpress';
-import { extractHighlightedBands, extractReviewScore } from '../../lib/editorialParsing';
+import type { Category, PostDetail } from './api/wordpress';
+import { extractHighlightedBands, extractReviewScore } from './utils/editorialParsing';
 
 export interface HomeCategoryRail {
   name: string;

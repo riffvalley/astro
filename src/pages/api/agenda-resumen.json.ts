@@ -7,8 +7,8 @@ export const prerender = false;
 import type { APIRoute } from 'astro';
 import type { AgendaMonthResponse } from '../../features/agenda/model/agendaApi.types';
 import { parseAgendaMonthRequest } from '../../features/agenda/utils/agendaMonthRequest';
-import { fetchRegionEvents } from '../../lib/googleCalendar';
-import { calendars } from '../../lib/agendaCalendars';
+import { fetchRegionEvents } from '../../features/agenda/server/googleCalendar';
+import { calendars } from '../../features/agenda/model/agendaCalendars';
 
 export const GET: APIRoute = async ({ url }) => {
   const result = parseAgendaMonthRequest(url.searchParams, new Date());

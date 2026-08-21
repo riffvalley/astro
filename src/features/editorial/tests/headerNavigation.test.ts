@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { PostDetail } from '../../../lib/wordpress';
+import type { PostDetail } from '../api/wordpress';
 import { buildHeaderNavigation } from '../headerNavigation';
 import { formatScore, scoreColor } from '../reviewScore';
 

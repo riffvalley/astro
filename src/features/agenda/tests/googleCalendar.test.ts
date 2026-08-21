@@ -4,7 +4,7 @@ import type { RegionCalendar } from '../model/agenda.types';
 import {
   fetchRegionEvents,
   GOOGLE_CALENDAR_REQUEST_TIMEOUT_MS,
-} from '../../../lib/googleCalendar';
+} from '../server/googleCalendar';
 
 const timeMin = new Date('2026-08-01T00:00:00.000Z');
 const timeMax = new Date('2026-09-01T00:00:00.000Z');

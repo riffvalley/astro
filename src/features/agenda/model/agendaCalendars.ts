@@ -1,4 +1,4 @@
-import type { RegionCalendar } from '../features/agenda/model/agenda.types';
+import type { RegionCalendar } from './agenda.types';
 
 // Calendarios públicos de Google Calendar, uno por comunidad autónoma (+
 // Portugal). Mismos IDs que ya usaba el sitio anterior — añadir un

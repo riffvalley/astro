@@ -1,10 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('../../../lib/googleCalendar', () => ({
+vi.mock('../server/googleCalendar', () => ({
   fetchRegionEvents: vi.fn(),
 }));
 
-import { fetchRegionEvents } from '../../../lib/googleCalendar';
+import { fetchRegionEvents } from '../server/googleCalendar';
 import { GET } from '../../../pages/api/agenda-resumen.json';
 import type { CalendarEvent } from '../model/agenda.types';
 
