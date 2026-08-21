@@ -2,7 +2,7 @@ import { EventEmitter } from 'node:events';
 import { request as httpsRequest } from 'node:https';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { WP_BASE_URL } from '../../../lib/wordpress';
+import { WP_BASE_URL } from '../../../lib/wordpressClient';
 
 // node:https/node:fs se mockean porque redactores.ts depende de
 // fetchGraphQL/readDevCache/writeDevCache de wordpress.ts, que a su vez usan

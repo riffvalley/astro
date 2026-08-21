@@ -2,11 +2,12 @@ import { EventEmitter } from 'node:events';
 import { request as httpsRequest } from 'node:https';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-// node:https se mockea porque wordpress.ts lo usa directamente (no fetch) para
-// evitar el fetch instrumentado de Netlify — ver comentario en el propio
-// archivo. node:fs se mockea como medida de seguridad: import.meta.env.DEV es
-// `true` bajo Vitest (comprobado empíricamente), así que sin este mock
-// readDevCache/writeDevCache tocarían el filesystem real (.wp-cache/).
+// node:https se mockea porque wordpress.ts depende de wordpressClient.ts, que
+// lo usa directamente (no fetch) para evitar el fetch instrumentado de
+// Netlify — ver comentario en el propio archivo. node:fs se mockea como
+// medida de seguridad: import.meta.env.DEV es `true` bajo Vitest (comprobado
+// empíricamente), así que sin este mock readDevCache/writeDevCache tocarían
+// el filesystem real (.wp-cache/).
 vi.mock('node:https', () => ({ request: vi.fn() }));
 vi.mock('node:fs', () => ({
   existsSync: vi.fn(() => false),
@@ -48,24 +49,15 @@ function queueHttpsResponse(status: number, body: string, contentType = 'applica
   }) as typeof httpsRequest);
 }
 
-function queueHttpsNetworkError(error: Error) {
-  vi.mocked(httpsRequest).mockImplementationOnce((() => {
-    const req = Object.assign(new EventEmitter(), {
-      write: vi.fn((chunk: string) => { capturedBodies.push(chunk); }),
-      end: vi.fn(() => { queueMicrotask(() => req.emit('error', error)); }),
-    }) as FakeReq;
-
-    return req as unknown as ReturnType<typeof httpsRequest>;
-  }) as typeof httpsRequest);
-}
-
-// Cada test que ejerce fetchGraphQL necesita una instancia fresca del módulo:
-// getAllPosts/getCategories/getPages/getRedactores memoizan su promesa a
-// nivel de módulo la primera vez que se llaman (`if (!xPromise) ...`) y esa
-// memoización nunca se resetea sola — sin esto, el segundo test que llame a
-// getCategories() recibiría la promesa (ya resuelta o rechazada) del primero.
-// vi.resetModules() resetea el registro de módulos normales; los mocks de
-// node:https/node:fs declarados arriba con vi.mock() se mantienen activos.
+// Cada test que ejerce fetchGraphQL (vía wordpressClient.ts) necesita una
+// instancia fresca del módulo: getAllPosts/getCategories/getPages memoizan
+// su promesa a nivel de módulo la primera vez que se llaman
+// (`if (!xPromise) ...`) y esa memoización nunca se resetea sola — sin esto,
+// el segundo test que llame a getAllPosts() recibiría la promesa (ya
+// resuelta o rechazada) del primero. vi.resetModules() resetea el registro
+// de módulos normales (incluido wordpressClient.ts, reimportado
+// internamente por wordpress.ts); los mocks de node:https/node:fs
+// declarados arriba con vi.mock() se mantienen activos.
 async function freshWordpressModule() {
   vi.resetModules();
   return import('./wordpress');
@@ -89,106 +81,11 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-// ---------------------------------------------------------------------------
-// 1. Transporte GraphQL — caracterizado a través de getCategories(), la
-//    entrada pública con la query/respuesta más simple (sin normalización
-//    adicional aplicada al resultado).
-// ---------------------------------------------------------------------------
-describe('GraphQL transport (via getCategories)', () => {
-  it('retries on 429 and eventually resolves', async () => {
-    const { getCategories } = await freshWordpressModule();
-    queueHttpsResponse(429, '');
-    queueHttpsResponse(200, JSON.stringify({ data: { categories: { nodes: [], pageInfo: { hasNextPage: false, endCursor: null } } } } ));
-
-    const promise = getCategories();
-    await flushRetries();
-
-    await expect(promise).resolves.toEqual([]);
-    expect(vi.mocked(httpsRequest)).toHaveBeenCalledTimes(2);
-  });
-
-  it('retries on 5xx and eventually resolves', async () => {
-    const { getCategories } = await freshWordpressModule();
-    queueHttpsResponse(503, '');
-    queueHttpsResponse(200, JSON.stringify({ data: { categories: { nodes: [], pageInfo: { hasNextPage: false, endCursor: null } } } }));
-
-    const promise = getCategories();
-    await flushRetries();
-
-    await expect(promise).resolves.toEqual([]);
-    expect(vi.mocked(httpsRequest)).toHaveBeenCalledTimes(2);
-  });
-
-  it('exhausts the current retry limit (6 attempts total) and throws on persistent 5xx', async () => {
-    const { getCategories } = await freshWordpressModule();
-    for (let i = 0; i < 6; i++) queueHttpsResponse(500, '');
-
-    const promise = getCategories();
-    promise.catch(() => {}); // engancha un handler ya mismo — evita el warning de "unhandled rejection" mientras avanzan los timers
-    await flushRetries();
-
-    await expect(promise).rejects.toThrow('GraphQL request failed: 500');
-    expect(vi.mocked(httpsRequest)).toHaveBeenCalledTimes(6);
-  });
-
-  it('does not retry a non-transient status (e.g. 404) — fails on the first attempt', async () => {
-    const { getCategories } = await freshWordpressModule();
-    queueHttpsResponse(404, 'Not Found');
-
-    const promise = getCategories();
-    promise.catch(() => {});
-    await flushRetries();
-
-    await expect(promise).rejects.toThrow('GraphQL request failed: 404');
-    expect(vi.mocked(httpsRequest)).toHaveBeenCalledTimes(1);
-  });
-
-  it('throws when the response content-type is not JSON', async () => {
-    const { getCategories } = await freshWordpressModule();
-    queueHttpsResponse(200, '<html>WAF block page</html>', 'text/html');
-
-    const promise = getCategories();
-    promise.catch(() => {});
-    await flushRetries();
-
-    await expect(promise).rejects.toThrow(/non-JSON response/);
-  });
-
-  it('throws with the joined message when the GraphQL response has errors', async () => {
-    const { getCategories } = await freshWordpressModule();
-    queueHttpsResponse(200, JSON.stringify({
-      errors: [{ message: 'Cannot query field "foo"' }, { message: 'Syntax error' }],
-    }));
-
-    const promise = getCategories();
-    promise.catch(() => {});
-    await flushRetries();
-
-    await expect(promise).rejects.toThrow('Cannot query field "foo", Syntax error');
-  });
-
-  it('propagates a network-level error as-is, without retrying', async () => {
-    const { getCategories } = await freshWordpressModule();
-    const networkError = new Error('ECONNRESET');
-    queueHttpsNetworkError(networkError);
-
-    const promise = getCategories();
-    promise.catch(() => {});
-    await flushRetries();
-
-    await expect(promise).rejects.toBe(networkError);
-    expect(vi.mocked(httpsRequest)).toHaveBeenCalledTimes(1);
-  });
-
-  // BLOQUEADO — ver informe final: fetchGraphQL() y su Map de caché en
-  // memoria son privados, y las 4 puertas públicas que lo usan
-  // (getAllPosts/getCategories/getPages/getRedactores) memoizan su propia
-  // promesa nada más llamarse la primera vez, así que ninguna de ellas puede
-  // volver a pedir la MISMA query+variables dos veces dentro de la vida de
-  // una instancia de módulo. No hay ninguna combinación de API pública que
-  // provoque un cache hit real de fetchGraphQL sin exportar algo solo para
-  // testearlo, lo cual está fuera de alcance.
-});
+// 1. Transporte GraphQL (retry/backoff, límite de reintentos, status no
+//    transitorio, content-type, errores GraphQL, error de red, cache-hit) —
+//    movido a src/lib/wordpressClient.ts junto con fetchGraphQL/postJson/
+//    enqueue; sus tests viven ahora en wordpressClient.test.ts, probando
+//    fetchGraphQL() directamente en vez de a través de getCategories().
 
 // ---------------------------------------------------------------------------
 // 2. Posts / paginación / normalización — vía getAllPosts(), incluyendo
