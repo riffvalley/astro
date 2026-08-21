@@ -9,7 +9,8 @@ import SpotifyJukebox from '../components/SpotifyJukebox.astro';
 import InstagramGridIsland from '../components/vue/InstagramGridIsland.vue';
 import TelegramGridIsland from '../components/vue/TelegramGridIsland.vue';
 import AgendaCalendarIsland from '../components/vue/AgendaCalendarIsland.vue';
-import { getAllPosts, getCategories, getRedactores, extractReviewScore, extractHighlightedBands } from '../lib/wordpress';
+import { getAllPosts, getCategories, getRedactores } from '../lib/wordpress';
+import { extractReviewScore, extractHighlightedBands } from '../lib/editorialParsing';
 import { calendars as agendaCalendars } from '../lib/agendaCalendars';
 
 const [posts, categories, redactores] = await Promise.all([getAllPosts(), getCategories(), getRedactores()]);

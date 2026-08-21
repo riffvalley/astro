@@ -343,66 +343,9 @@ describe('getAllPosts / pagination', () => {
 //    API pública cuando sea posible".
 // ---------------------------------------------------------------------------
 
-// ---------------------------------------------------------------------------
-// 4. Parsing editorial existente — se amplían los describe ya existentes.
-// ---------------------------------------------------------------------------
-describe('extractReviewScore', () => {
-  it('extracts the decimal score from the supported review markup', async () => {
-    const { extractReviewScore } = await freshWordpressModule();
-    const content = '<div class="score__wrap review-score"><div class="score">8.8</div></div>';
-
-    expect(extractReviewScore(content)).toBe(8.8);
-  });
-
-  it('returns null when the review markup has no score', async () => {
-    const { extractReviewScore } = await freshWordpressModule();
-    expect(extractReviewScore('<p>Reseña sin bloque de puntuación.</p>')).toBeNull();
-  });
-
-  it('extracts an integer score written without decimals', async () => {
-    const { extractReviewScore } = await freshWordpressModule();
-    expect(extractReviewScore('<div class="score__wrap"><div class="score">9</div></div>')).toBe(9);
-  });
-
-  it('matches the first score block when several class name variants are combined', async () => {
-    const { extractReviewScore } = await freshWordpressModule();
-    const content = '<div class="score__wrap alt extra" style="color:red"><div class="score">6.5</div></div>';
-    expect(extractReviewScore(content)).toBe(6.5);
-  });
-});
-
-describe('extractHighlightedBands', () => {
-  it('normalizes inline markup, entities and the trailing conjunction', async () => {
-    const { extractHighlightedBands } = await freshWordpressModule();
-    const content = '<p>Os hablaremos de los nuevos trabajos de <strong>Converge</strong>, Touché Amoré y Art&amp;est.</p>';
-
-    expect(extractHighlightedBands(content)).toEqual(['Converge', 'Touché Amoré', 'Art&est']);
-  });
-
-  it('returns a single band when there is no trailing conjunction to split', async () => {
-    const { extractHighlightedBands } = await freshWordpressModule();
-    const content = '<p>Os hablaremos de los nuevos trabajos de Gojira.</p>';
-
-    expect(extractHighlightedBands(content)).toEqual(['Gojira']);
-  });
-
-  it('handles an Oxford-comma list ("... , y Band")', async () => {
-    const { extractHighlightedBands } = await freshWordpressModule();
-    const content = '<p>Os hablaremos de los nuevos trabajos de Opeth, Katatonia, y Anathema.</p>';
-
-    expect(extractHighlightedBands(content)).toEqual(['Opeth', 'Katatonia', 'Anathema']);
-  });
-
-  it('returns an empty array when the first paragraph does not match the expected phrase', async () => {
-    const { extractHighlightedBands } = await freshWordpressModule();
-    expect(extractHighlightedBands('<p>Un párrafo cualquiera sin la fórmula esperada.</p>')).toEqual([]);
-  });
-
-  it('returns an empty array when there is no paragraph at all', async () => {
-    const { extractHighlightedBands } = await freshWordpressModule();
-    expect(extractHighlightedBands('<div>Sin párrafo</div>')).toEqual([]);
-  });
-});
+// 4. Parsing editorial (extractReviewScore/extractHighlightedBands) — movido
+//    a src/lib/editorialParsing.ts junto con el resto de la extracción de
+//    ese archivo; sus tests viven ahora en editorialParsing.test.ts.
 
 // ---------------------------------------------------------------------------
 // 5. Redactores — ensamblado y postAlias, caracterizados vía getRedactores(),

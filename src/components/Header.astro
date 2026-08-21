@@ -1,6 +1,7 @@
 ---
 import Search from './Search.astro';
-import { getAllPosts, extractReviewScore } from '../lib/wordpress';
+import { getAllPosts } from '../lib/wordpress';
+import { extractReviewScore } from '../lib/editorialParsing';
 
 // getAllPosts() está memoizada a nivel de módulo — index.astro/[...path].astro
 // ya la llaman, así que reutiliza la misma promesa/resultado sin repetir la
