@@ -1,4 +1,4 @@
-import { WP_BASE_URL, fetchGraphQL, readDevCache, writeDevCache } from '../../lib/wordpress';
+import { WP_BASE_URL, fetchGraphQL, readDevCache, writeDevCache } from '../../lib/wordpressClient';
 
 export interface Redactor {
   name: string;
