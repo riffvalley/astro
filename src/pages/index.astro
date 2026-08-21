@@ -9,7 +9,8 @@ import SpotifyJukebox from '../components/SpotifyJukebox.astro';
 import InstagramGridIsland from '../components/vue/InstagramGridIsland.vue';
 import TelegramGridIsland from '../components/vue/TelegramGridIsland.vue';
 import AgendaCalendarIsland from '../components/vue/AgendaCalendarIsland.vue';
-import { getAllPosts, getCategories, getRedactores } from '../lib/wordpress';
+import { getAllPosts, getCategories } from '../lib/wordpress';
+import { getRedactores } from '../features/redactores/redactores';
 import { extractReviewScore, extractHighlightedBands } from '../lib/editorialParsing';
 import { calendars as agendaCalendars } from '../lib/agendaCalendars';
 
