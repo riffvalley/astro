@@ -40,8 +40,6 @@ const INE_TO_CALENDAR_NAME: Record<string, string> = {
 };
 const CANARY_ISLANDS_ID = '05';
 
-export type { MapShape, SpainMap } from '../features/agenda/model/agenda.types';
-
 // world-atlas empaqueta el territorio completo de Portugal (incluidos
 // Madeira/Azores, ~-31 a -17 de longitud) como un único MultiPolygon, que
 // quedaría fuera de la proyección centrada en la península. Nos quedamos
