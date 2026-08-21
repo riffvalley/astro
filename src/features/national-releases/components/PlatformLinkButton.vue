@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { detectLinkPlatform } from '../../lib/linkPlatform';
-import { SPOTIFY_ICON_PATH } from '../../lib/spotify';
+import { detectLinkPlatform } from '../../../lib/linkPlatform';
+import { SPOTIFY_ICON_PATH } from '../../../lib/spotify';
 
 const BANDCAMP_ICON_PATH = 'M0 18.75l7.437-13.5H24l-7.438 13.5H0z';
 const YOUTUBE_ICON_PATH =
