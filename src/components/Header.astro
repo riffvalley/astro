@@ -1,74 +1,14 @@
 ---
 import Search from './Search.astro';
 import { getAllPosts } from '../lib/wordpress';
-import { extractReviewScore } from '../lib/editorialParsing';
+import { buildHeaderNavigation, formatScore, scoreColor } from '../features/editorial';
 
 // getAllPosts() está memoizada a nivel de módulo — index.astro/[...path].astro
 // ya la llaman, así que reutiliza la misma promesa/resultado sin repetir la
 // paginación completa contra WPGraphQL.
 const allPosts = await getAllPosts();
 
-const PREVIEW_COUNT = 3;
-
-function getPreviewPosts(href: string) {
-  return allPosts
-    .filter(p => p.categories.some(c => c.uri === href))
-    .slice(0, PREVIEW_COUNT)
-    .map(post => ({ post, score: extractReviewScore(post.content) }));
-}
-
-function scoreColor(score: number) {
-  if (score >= 8) return '#3fae6a';
-  if (score >= 6) return '#d9a233';
-  return '#d93259';
-}
-
-function formatScore(score: number) {
-  return Number.isInteger(score) ? String(score) : score.toFixed(1);
-}
-
-function withPreviews(children: { label: string; href: string }[]) {
-  return children.map(child => ({
-    ...child,
-    previewPosts: getPreviewPosts(child.href),
-  }));
-}
-
-const nav = [
-  {
-    label: 'Artículos',
-    href: '/articulos',
-    children: withPreviews([
-      { label: 'Análisis de festivales', href: '/articulos/analisis' },
-      { label: 'Artículos generales',    href: '/articulos/articulos-generales' },
-      { label: 'Bandas',                 href: '/articulos/bandas-articulos-2' },
-      { label: 'Discográficas',          href: '/articulos/discograficas' },
-      { label: 'Géneros',                href: '/articulos/generos' },
-      { label: 'Historia',               href: '/articulos/historia' },
-      { label: 'Mejores discos del año', href: '/articulos/mejores-discos/discos-del-ano' },
-      { label: 'Mejores discos del mes', href: '/articulos/mejores-discos/discos-del-mes' },
-      { label: 'Portadas de álbumes',    href: '/articulos/portadas-de-albumes' },
-    ]),
-  },
-  {
-    label: 'Novedades',
-    href: '/novedades',
-    children: withPreviews([
-      { label: 'Noticias', href: '/novedades/noticias' },
-      { label: 'La Lupa',  href: '/novedades/la-lupa' },
-    ]),
-  },
-  { label: 'Reviews', href: '/review-de-discos', previewPosts: getPreviewPosts('/review-de-discos') },
-  {
-    label: 'Crónicas',
-    href: '/cronicas',
-    children: withPreviews([
-      { label: 'Conciertos', href: '/cronicas/conciertos' },
-      { label: 'Festivales', href: '/cronicas/festivales-cronicas' },
-    ]),
-  },
-  { label: 'Entrevistas', href: '/entrevistas', previewPosts: getPreviewPosts('/entrevistas') },
-];
+const nav = buildHeaderNavigation(allPosts);
 
 const social = [
   {
@@ -161,12 +101,12 @@ const social = [
                       </div>
                       {child.previewPosts.length > 0 ? (
                         <div class="mega-menu-posts">
-                          {child.previewPosts.map(({ post, score }) => (
-                            <a href={post.uri} class="mega-menu-post">
-                              {post.featuredImage && (
-                                <img src={post.featuredImage.node.sourceUrl} alt="" loading="lazy" class="mega-menu-post-img" />
+                          {child.previewPosts.map(({ href, imageUrl, title, score }) => (
+                            <a href={href} class="mega-menu-post">
+                              {imageUrl !== null && (
+                                <img src={imageUrl} alt="" loading="lazy" class="mega-menu-post-img" />
                               )}
-                              <span class="mega-menu-post-title">{post.title}</span>
+                              <span class="mega-menu-post-title">{title}</span>
                               {score !== null && (
                                 <span class="mega-menu-post-score" style={`--score-color:${scoreColor(score)}`}>{formatScore(score)}</span>
                               )}
@@ -190,12 +130,12 @@ const social = [
                       <a href={item.href} class="mega-menu-panel-link">Ver todo →</a>
                     </div>
                     <div class="mega-menu-posts">
-                      {item.previewPosts.map(({ post, score }) => (
-                        <a href={post.uri} class="mega-menu-post">
-                          {post.featuredImage && (
-                            <img src={post.featuredImage.node.sourceUrl} alt="" loading="lazy" class="mega-menu-post-img" />
+                      {item.previewPosts.map(({ href, imageUrl, title, score }) => (
+                        <a href={href} class="mega-menu-post">
+                          {imageUrl !== null && (
+                            <img src={imageUrl} alt="" loading="lazy" class="mega-menu-post-img" />
                           )}
-                          <span class="mega-menu-post-title">{post.title}</span>
+                          <span class="mega-menu-post-title">{title}</span>
                           {score !== null && (
                             <span class="mega-menu-post-score" style={`--score-color:${scoreColor(score)}`}>{formatScore(score)}</span>
                           )}
