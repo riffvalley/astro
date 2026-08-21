@@ -12,7 +12,7 @@ export const prerender = false;
 
 import type { APIRoute } from 'astro';
 import { API_BASE } from '../../lib/apiBase';
-import { REDACTOR_REELS } from '../../lib/wordpress';
+import { REDACTOR_REELS } from '../../features/redactores/redactores';
 
 interface InstagramApiPost {
   mediaType: string;
