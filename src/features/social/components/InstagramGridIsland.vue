@@ -1,30 +1,38 @@
 <script setup lang="ts">
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { fetchInstagramPosts, type InstagramPost } from '../api/instagram';
+import { usePaginatedSocialFeed } from '../composables/usePaginatedSocialFeed';
 import InstagramPostCard from './InstagramPostCard.vue';
 import InstagramPostDetail from './InstagramPostDetail.vue';
 import PhoneFrame from './PhoneFrame.vue';
 
 const LIMIT = 12;
 
-const posts = ref<InstagramPost[]>([]);
-const offset = ref(0);
-const hasMore = ref(true);
-const loading = ref(false);
-const errored = ref(false);
-const selectedPost = ref<InstagramPost | null>(null);
+const {
+  posts,
+  hasMore,
+  loading,
+  errored,
+  selectedPost,
+  loadMore: loadFeedPage,
+  selectPost: selectFeedPost,
+  closeDetail: closeFeedDetail,
+} = usePaginatedSocialFeed<InstagramPost, number>(async offset => {
+  const page = await fetchInstagramPosts(LIMIT, offset);
+  return { data: page.data, hasMore: page.hasMore, nextCursor: offset + LIMIT };
+}, 0);
 
 const viewportEl = ref<HTMLElement | null>(null);
 const sentinel = ref<HTMLElement | null>(null);
 let observer: IntersectionObserver | null = null;
 
 function selectPost(post: InstagramPost) {
-  selectedPost.value = post;
+  selectFeedPost(post);
   if (viewportEl.value) viewportEl.value.scrollTop = 0;
 }
 
 function closeDetail() {
-  selectedPost.value = null;
+  closeFeedDetail();
   if (viewportEl.value) viewportEl.value.scrollTop = 0;
 }
 
@@ -38,19 +46,8 @@ watch(selectedPost, async value => {
 });
 
 async function loadMore() {
-  if (loading.value || !hasMore.value) return;
-  loading.value = true;
-  errored.value = false;
-  try {
-    const page = await fetchInstagramPosts(LIMIT, offset.value);
-    posts.value.push(...page.data);
-    offset.value += LIMIT;
-    hasMore.value = page.hasMore;
-  } catch {
-    errored.value = true;
-  } finally {
-    loading.value = false;
-  }
+  const loaded = await loadFeedPage();
+  if (!loaded) return;
 
   // Si la página cargada no llega a desbordar el contenedor, el sentinel
   // nunca "entra" en vista y el IntersectionObserver no dispara solo — seguir

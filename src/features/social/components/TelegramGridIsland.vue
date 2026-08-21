@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { fetchTelegramPosts, type TelegramPost } from '../api/telegram';
+import { usePaginatedSocialFeed } from '../composables/usePaginatedSocialFeed';
 import TelegramPostCard from './TelegramPostCard.vue';
 import TelegramPostDetail from './TelegramPostDetail.vue';
 import PhoneFrame from './PhoneFrame.vue';
@@ -8,24 +9,31 @@ import PhoneFrame from './PhoneFrame.vue';
 const CHANNEL = 'conciertosrockmetal';
 const LIMIT = 12;
 
-const posts = ref<TelegramPost[]>([]);
-const nextBefore = ref<string | undefined>(undefined);
-const hasMore = ref(true);
-const loading = ref(false);
-const errored = ref(false);
-const selectedPost = ref<TelegramPost | null>(null);
+const {
+  posts,
+  hasMore,
+  loading,
+  errored,
+  selectedPost,
+  loadMore: loadFeedPage,
+  selectPost: selectFeedPost,
+  closeDetail: closeFeedDetail,
+} = usePaginatedSocialFeed<TelegramPost, string | undefined>(async before => {
+  const page = await fetchTelegramPosts(CHANNEL, LIMIT, before);
+  return { data: page.data, hasMore: page.hasMore, nextCursor: page.nextBefore ?? undefined };
+}, undefined);
 
 const viewportEl = ref<HTMLElement | null>(null);
 const sentinel = ref<HTMLElement | null>(null);
 let observer: IntersectionObserver | null = null;
 
 function selectPost(post: TelegramPost) {
-  selectedPost.value = post;
+  selectFeedPost(post);
   if (viewportEl.value) viewportEl.value.scrollTop = 0;
 }
 
 function closeDetail() {
-  selectedPost.value = null;
+  closeFeedDetail();
   if (viewportEl.value) viewportEl.value.scrollTop = 0;
 }
 
@@ -39,19 +47,8 @@ watch(selectedPost, async value => {
 });
 
 async function loadMore() {
-  if (loading.value || !hasMore.value) return;
-  loading.value = true;
-  errored.value = false;
-  try {
-    const page = await fetchTelegramPosts(CHANNEL, LIMIT, nextBefore.value);
-    posts.value.push(...page.data);
-    nextBefore.value = page.nextBefore ?? undefined;
-    hasMore.value = page.hasMore;
-  } catch {
-    errored.value = true;
-  } finally {
-    loading.value = false;
-  }
+  const loaded = await loadFeedPage();
+  if (!loaded) return;
 
   // Si la página cargada no llega a desbordar el contenedor, el sentinel
   // nunca "entra" en vista y el IntersectionObserver no dispara solo — seguir
