@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
-import type { Disc } from '../../lib/discs';
-import { readableTextColor } from '../../lib/colorContrast';
-import ColorPill from './ColorPill.vue';
+import type { Disc } from '../model/disc.types';
+import { readableTextColor } from '../../../lib/colorContrast';
+import ColorPill from '../../../shared/components/ColorPill.vue';
 import Badge from './Badge.vue';
 import SpotifyButton from './SpotifyButton.vue';
 

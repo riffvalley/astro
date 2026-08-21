@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { monthBounds } from './discs';
+import { monthBounds } from '../utils/monthBounds';
 
 describe('monthBounds', () => {
   it('returns inclusive bounds for leap February and a year boundary', () => {

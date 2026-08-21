@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
-import MonthYearPicker from './MonthYearPicker.vue';
-import SearchableCombobox from './SearchableCombobox.vue';
-import ReleaseGroup from './ReleaseGroup.vue';
-import DiscRow from './DiscRow.vue';
-import DiscModal from './DiscModal.vue';
-import { DATA_START_YEAR, fetchFilterOptions, fetchMonth, type Disc, type DiscDateGroup, type FilterOption } from '../../lib/discs';
-import { formatDateLong } from '../../lib/releaseFormat';
+import MonthYearPicker from '../../shared/components/MonthYearPicker.vue';
+import ReleaseGroup from '../../shared/components/ReleaseGroup.vue';
+import SearchableCombobox from '../../features/releases/components/SearchableCombobox.vue';
+import DiscRow from '../../features/releases/components/DiscRow.vue';
+import DiscModal from '../../features/releases/components/DiscModal.vue';
+import { DATA_START_YEAR, fetchFilterOptions, fetchMonth } from '../../features/releases/api/discsClient';
+import type { Disc, DiscDateGroup, FilterOption } from '../../features/releases/model/disc.types';
+import { formatDateLong } from '../../shared/utils/formatDateLong';
+import { pickDefaultOpenIndex } from '../../features/releases/utils/pickDefaultOpenIndex';
 
 const today = new Date();
 const viewMonth = ref(today.getMonth()); // 0-indexado
@@ -29,41 +31,13 @@ const selectedDisc = ref<Disc | null>(null);
 
 const hasActiveFilters = computed(() => !!appliedGenreId.value || !!appliedCountryId.value);
 
-function todayIso() {
-  const y = today.getFullYear();
-  const m = String(today.getMonth() + 1).padStart(2, '0');
-  const d = String(today.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
-}
-
-// En la carga inicial se abre el grupo de hoy (o el más cercano a hoy si hoy
-// no tiene lanzamientos). Un cambio de mes o de filtros posterior deja todo
-// comprimido.
-function pickDefaultOpenIndex(groupList: DiscDateGroup[], isInitial: boolean) {
-  if (!isInitial) return -1;
-  if (viewYear.value === today.getFullYear() && viewMonth.value === today.getMonth()) {
-    const todayTime = new Date(`${todayIso()}T00:00:00`).getTime();
-    let closestIdx = 0;
-    let closestDiff = Infinity;
-    groupList.forEach((g, i) => {
-      const diff = Math.abs(new Date(`${g.releaseDate}T00:00:00`).getTime() - todayTime);
-      if (diff < closestDiff) {
-        closestDiff = diff;
-        closestIdx = i;
-      }
-    });
-    return closestIdx;
-  }
-  return 0;
-}
-
 async function load(isInitial = false) {
   loading.value = true;
   errored.value = false;
   try {
     const data = await fetchMonth(viewYear.value, viewMonth.value, appliedGenreId.value, appliedCountryId.value);
     groups.value = data;
-    openIndex.value = pickDefaultOpenIndex(data, isInitial);
+    openIndex.value = pickDefaultOpenIndex(data, isInitial, viewYear.value, viewMonth.value, today);
   } catch {
     errored.value = true;
     groups.value = [];

@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
-import MonthYearPicker from './MonthYearPicker.vue';
-import ReleaseGroup from './ReleaseGroup.vue';
-import NationalRow from './NationalRow.vue';
-import ProposalForm from './ProposalForm.vue';
-import { DATA_START_YEAR, fetchNationalReleases, type NationalRelease } from '../../lib/nationalReleases';
-import { formatDateLong, groupByDay } from '../../lib/releaseFormat';
+import MonthYearPicker from '../../shared/components/MonthYearPicker.vue';
+import ReleaseGroup from '../../shared/components/ReleaseGroup.vue';
+import NationalRow from '../../features/national-releases/components/NationalRow.vue';
+import ProposalForm from '../../features/national-releases/components/ProposalForm.vue';
+import { DATA_START_YEAR, fetchNationalReleases } from '../../features/national-releases/api/nationalReleasesClient';
+import type { NationalRelease } from '../../features/national-releases/model/nationalRelease.types';
+import { formatDateLong } from '../../shared/utils/formatDateLong';
+import { groupByDay } from '../../features/national-releases/utils/releaseFormat';
 
 const today = new Date();
 const viewMonth = ref(today.getMonth()); // 0-indexado

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import type { NationalRelease } from '../../lib/nationalReleases';
-import { TYPE_COLORS, TYPE_LABELS, GENRE_COLOR } from '../../lib/releaseFormat';
-import ColorPill from './ColorPill.vue';
+import type { NationalRelease } from '../model/nationalRelease.types';
+import { TYPE_COLORS, TYPE_LABELS, GENRE_COLOR } from '../utils/releaseFormat';
+import ColorPill from '../../../shared/components/ColorPill.vue';
 import PlatformLinkButton from './PlatformLinkButton.vue';
 
 const props = defineProps<{ item: NationalRelease }>();

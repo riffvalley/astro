@@ -9,7 +9,9 @@ import SpotifyJukebox from '../components/SpotifyJukebox.astro';
 import InstagramGridIsland from '../components/vue/InstagramGridIsland.vue';
 import TelegramGridIsland from '../components/vue/TelegramGridIsland.vue';
 import AgendaCalendarIsland from '../components/vue/AgendaCalendarIsland.vue';
-import { getAllPosts, getCategories, getRedactores, extractReviewScore, extractHighlightedBands } from '../lib/wordpress';
+import { getAllPosts, getCategories } from '../lib/wordpress';
+import { getRedactores } from '../features/redactores/redactores';
+import { buildHomeEditorialContent } from '../features/editorial';
 import { calendars as agendaCalendars } from '../lib/agendaCalendars';
 
 const [posts, categories, redactores] = await Promise.all([getAllPosts(), getCategories(), getRedactores()]);
@@ -22,62 +24,10 @@ const agendaMonth = today.getMonth() + 1;
 // mientras llega la respuesta real de /api/spain-map.json.
 const emptySpainMap = { width: 613, height: 544, shapes: [], compositionBorder: '' };
 
-const gridPosts = posts.slice(0, 6);
-
-const usedIds = new Set(gridPosts.map(p => p.id));
-
-function findTopCategory(path: string) {
-  return categories.find(c => c.uri.replace(/\/+$/, '') === path);
-}
-
-// El post de "Mejores discos del mes" también está tagueado bajo /articulos,
-// así que se reserva su id ANTES de armar el riel de Artículos para que no
-// aparezca duplicado ahí y en su propia sección destacada.
-const discosDelMesCategory = findTopCategory('/articulos/mejores-discos/discos-del-mes');
-const discosDelMesPost = discosDelMesCategory
-  ? posts
-      .filter(p => p.categories.some(c => c.uri === discosDelMesCategory.uri))
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]
-  : undefined;
-if (discosDelMesPost) usedIds.add(discosDelMesPost.id);
-const discosDelMesBands = discosDelMesPost ? extractHighlightedBands(discosDelMesPost.content) : [];
-
-// Cada riel debe aportar contenido que no se haya visto ya arriba en la
-// página — se van marcando los posts usados a medida que se arma cada
-// riel, en el mismo orden en que aparecen dentro de la tarjeta "Actualidad".
-function railPosts(category: (typeof categories)[number] | undefined, limit = 4) {
-  if (!category) return [];
-  const fresh = posts.filter(p => p.categories.some(c => c.uri === category.uri) && !usedIds.has(p.id)).slice(0, limit);
-  fresh.forEach(p => usedIds.add(p.id));
-  return fresh;
-}
-
-// "Actualidad" agrupa un orden fijo de secciones (no las N categorías con
-// más posts, como antes) — Crónicas, Reviews, Artículos, Entrevistas y
-// Novedades, en ese orden. El nº de tarjetas de cada una varía a propósito
-// (3 / 2 / 4 / 1 / 4) para que la tarjeta no se lea como la misma
-// cuadrícula de 4 repetida cinco veces.
-const cronicasCategory = findTopCategory('/cronicas');
-const cronicasPosts = railPosts(cronicasCategory, 3);
-
-const reviewsCategory = categories.find(c => c.uri.includes('review-de-discos'));
-const reviewItems = reviewsCategory
-  ? posts
-      .filter(p => p.categories.some(c => c.uri === reviewsCategory.uri) && !usedIds.has(p.id))
-      .slice(0, 2)
-      .map(post => ({ post, score: extractReviewScore(post.content) }))
-  : [];
-reviewItems.forEach(({ post }) => usedIds.add(post.id));
-
-const articulosCategory = findTopCategory('/articulos');
-const articulosPosts = railPosts(articulosCategory, 4);
-
-// Entrevistas va destacada a 2 columnas, no como grid de 4.
-const entrevistasCategory = findTopCategory('/entrevistas');
-const entrevistasPosts = railPosts(entrevistasCategory, 2);
-
-const novedadesCategory = findTopCategory('/novedades');
-const novedadesPosts = railPosts(novedadesCategory, 4);
+const { gridPosts, cronicas, reviews, articulos, entrevistas, novedades, monthlyAlbums } = buildHomeEditorialContent(
+  posts,
+  categories
+);
 ---
 
 <Layout title="Riff Valley – Música metal, rock y hardcore">
@@ -161,23 +111,23 @@ const novedadesPosts = railPosts(novedadesCategory, 4);
         <div class="agenda-card">
           <h2 class="agenda-card-title" id="rail-actualidad">Actualidad</h2>
 
-          {cronicasCategory && <CategoryRail name={cronicasCategory.name} href={cronicasCategory.uri} posts={cronicasPosts} columns={3} />}
-          {reviewsCategory && reviewItems.length > 0 && <ReviewsRail items={reviewItems} href={reviewsCategory.uri} columns={2} />}
-          {articulosCategory && <CategoryRail name={articulosCategory.name} href={articulosCategory.uri} posts={articulosPosts} columns={4} />}
-          {entrevistasCategory && (
+          {cronicas && <CategoryRail name={cronicas.name} href={cronicas.href} posts={cronicas.posts} columns={3} />}
+          {reviews && reviews.items.length > 0 && <ReviewsRail items={reviews.items} href={reviews.href} columns={2} />}
+          {articulos && <CategoryRail name={articulos.name} href={articulos.href} posts={articulos.posts} columns={4} />}
+          {entrevistas && (
             <CategoryRail
-              name={entrevistasCategory.name}
-              href={entrevistasCategory.uri}
-              posts={entrevistasPosts}
+              name={entrevistas.name}
+              href={entrevistas.href}
+              posts={entrevistas.posts}
               columns={2}
               cardSize="lg"
               showExcerpt
               spotlight
             />
           )}
-          {novedadesCategory && <CategoryRail name={novedadesCategory.name} href={novedadesCategory.uri} posts={novedadesPosts} columns={4} />}
-          {discosDelMesPost && discosDelMesCategory && (
-            <MonthlyAlbumsSpotlight post={discosDelMesPost} bands={discosDelMesBands} href={discosDelMesCategory.uri} />
+          {novedades && <CategoryRail name={novedades.name} href={novedades.href} posts={novedades.posts} columns={4} />}
+          {monthlyAlbums && (
+            <MonthlyAlbumsSpotlight post={monthlyAlbums.post} bands={monthlyAlbums.bands} href={monthlyAlbums.href} />
           )}
         </div>
       </section>

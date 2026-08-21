@@ -1,5 +1,6 @@
 ---
 import type { Post } from '../lib/wordpress';
+import { formatScore, scoreColor } from '../features/editorial';
 
 interface ReviewItem {
   post: Post;
@@ -13,16 +14,6 @@ interface Props {
 }
 
 const { items, href, columns = 4 } = Astro.props;
-
-function scoreColor(score: number) {
-  if (score >= 8) return '#3fae6a';
-  if (score >= 6) return '#d9a233';
-  return '#d93259';
-}
-
-function formatScore(score: number) {
-  return Number.isInteger(score) ? String(score) : score.toFixed(1);
-}
 ---
 
 {items.length > 0 && (
