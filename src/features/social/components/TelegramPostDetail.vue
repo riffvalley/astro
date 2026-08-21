@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import type { TelegramPost } from '../../lib/telegram';
+import type { TelegramPost } from '../api/telegram';
 import PhoneMediaCarousel, { type CarouselSlide } from './PhoneMediaCarousel.vue';
 
 const props = defineProps<{ post: TelegramPost }>();

@@ -1,4 +1,4 @@
-import { API_BASE } from './apiBase';
+import { API_BASE } from '../../../lib/apiBase';
 
 export interface TelegramPost {
   id: string;

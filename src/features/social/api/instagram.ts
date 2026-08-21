@@ -1,4 +1,4 @@
-import { API_BASE } from './apiBase';
+import { API_BASE } from '../../../lib/apiBase';
 
 export type InstagramMediaType = 'IMAGE' | 'VIDEO' | 'CAROUSEL_ALBUM';
 export type InstagramMediaProductType = 'FEED' | 'REELS' | 'STORY' | 'AD' | null;

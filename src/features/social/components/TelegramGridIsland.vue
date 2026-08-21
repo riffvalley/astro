@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import { fetchTelegramPosts, type TelegramPost } from '../../lib/telegram';
+import { fetchTelegramPosts, type TelegramPost } from '../api/telegram';
 import TelegramPostCard from './TelegramPostCard.vue';
 import TelegramPostDetail from './TelegramPostDetail.vue';
 import PhoneFrame from './PhoneFrame.vue';

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import type { InstagramPost } from '../../lib/instagram';
+import type { InstagramPost } from '../api/instagram';
 
 const props = defineProps<{ post: InstagramPost }>();
 
