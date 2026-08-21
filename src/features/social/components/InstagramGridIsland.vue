@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import { fetchInstagramPosts, type InstagramPost } from '../../lib/instagram';
+import { fetchInstagramPosts, type InstagramPost } from '../api/instagram';
 import InstagramPostCard from './InstagramPostCard.vue';
 import InstagramPostDetail from './InstagramPostDetail.vue';
 import PhoneFrame from './PhoneFrame.vue';
