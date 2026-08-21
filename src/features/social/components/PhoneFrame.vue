@@ -7,7 +7,7 @@ withDefaults(
     subtitle?: string;
     subtitleHref?: string;
     canGoBack?: boolean;
-    platformIcon?: 'instagram' | 'telegram';
+    platformIcon?: 'instagram' | 'telegram' | 'tiktok';
   }>(),
   { canGoBack: false },
 );
@@ -57,6 +57,9 @@ function scrollToTop() {
       >
         <svg v-if="platformIcon === 'telegram'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="m22 2-7 20-4-9-9-4Z" /><path d="M22 2 11 13" />
+        </svg>
+        <svg v-else-if="platformIcon === 'tiktok'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 18V6a4 4 0 0 1 4-4h1a5 5 0 0 0 5 5v3a8 8 0 0 1-5-1.75V18a5 5 0 1 1-5-5" />
         </svg>
         <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <rect x="3" y="3" width="18" height="18" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.5" cy="6.5" r="0.5" fill="currentColor" stroke="none" />
