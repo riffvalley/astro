@@ -33,7 +33,7 @@ Vue es apropiado si existe una necesidad real de JavaScript reactivo, como:
 - múltiples eventos cliente coordinados;
 - una interacción que sería artificial y frágil con scripts imperativos grandes.
 
-Ejemplos actuales justificados: `AgendaCalendarIsland.vue` (filtros, diálogos, navegación y eventos), `GuiaLanzamientosIsland.vue`, `NovedadesNacionalesIsland.vue` y los feeds paginados de Instagram/Telegram.
+Ejemplos actuales justificados: `AgendaCalendarIsland.vue` (filtros, diálogos, navegación y eventos), `GuiaLanzamientosIsland.vue`, `NovedadesNacionalesIsland.vue` y los tres feeds paginados de `features/social/` (Instagram, Telegram, TikTok).
 
 ## Casos que no justifican convertir a Vue
 

@@ -1,6 +1,6 @@
 # Propiedad y frontera de una integración
 
-Aplica primero `riffvalley-feature-module`: la API pertenece normalmente a la capacidad que sirve, no a un directorio técnico. Por ejemplo, clientes de agenda tenderían a `features/agenda/api/`; lanzamientos, a sus features. Infraestructura realmente transversal puede llegar a `shared/api/` o `shared/config/`, pero no conviertas eso en un nuevo `src/lib` genérico.
+Aplica primero `riffvalley-feature-module`: la API pertenece normalmente a la capacidad que sirve, no a un directorio técnico. Así viven hoy: `features/agenda/api/`, `features/releases/api/discsClient.ts`, `features/national-releases/api/nationalReleasesClient.ts` y `features/social/api/{instagram,telegram,tiktok}.ts` — cada cliente junto a la feature que sirve, ninguno en un directorio técnico compartido. Infraestructura realmente transversal puede llegar a `shared/api/` o `shared/config/`, pero no conviertas eso en un nuevo `src/lib` genérico.
 
 ## Representación externa y modelo interno
 
@@ -16,8 +16,10 @@ Las rutas de `src/pages/api/` son fronteras HTTP de Riff Valley. Mantienen reque
 request → validation → feature/application function → response
 ```
 
-No hagas deep imports entre features para reutilizar una integración. Coordina desde `pages`/`app`, usa una API pública mínima o, sólo si es verdaderamente agnóstico y reutilizado, evalúa `shared`.
+La dirección de dependencias entre features y cuándo promocionar algo a `shared` las gobiernan `riffvalley-architecture` y `riffvalley-feature-module` — no las repitas aquí; para una integración, la señal a vigilar es un deep import a `features/*/api/` ajeno en vez de componer desde `pages`/`app`.
 
 ## Cliente HTTP común
+
+`lib/apiBase.ts` (base URL) es infraestructura técnica sin conocimiento de dominio; `features/social/api/{instagram,telegram,tiktok}.ts` son los clientes de dominio que la consumen. Preserva esa separación al añadir un proveedor nuevo — no la colapses en un único módulo.
 
 Una futura ayuda pequeña puede centralizar timeout, `AbortSignal`, comprobación de status, parseo JSON, errores básicos o headers repetidos. No crees `IHttpClient`, fábricas, `BaseApiRepository` o clases abstractas hasta que varias integraciones tengan una necesidad concreta y estable. Un wrapper que sólo llama a `fetch` añade ceremonia, no valor.

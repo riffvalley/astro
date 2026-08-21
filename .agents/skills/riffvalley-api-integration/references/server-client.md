@@ -6,7 +6,7 @@
 
 - `GOOGLE_CALENDAR_API_KEY` se usa para leer Google Calendar en servidor; debe continuar siendo secreta.
 - `WP_BASE_URL` configura WordPress server/build y tiene un fallback consciente hacia `https://www.riffvalley.es`.
-- `HOST_API` se expone deliberadamente mediante `vite.envPrefix` porque `discs`, lanzamientos nacionales, Instagram, Spotify y Telegram se consumen desde Islands. Por ello es una base pública: no puede contener secretos ni asumir protección por no llamarse `PUBLIC_*`.
+- `HOST_API` se expone deliberadamente mediante `vite.envPrefix` porque discos, lanzamientos nacionales, Spotify y los tres feeds de `features/social/` (Instagram, Telegram, TikTok) se consumen desde Islands. Por ello es una base pública: no puede contener secretos ni asumir protección por no llamarse `PUBLIC_*`.
 
 No modifiques ahora `astro.config.mjs`, `.env` ni contratos. Si la configuración crece, `shared/config/env.ts` podría ser un candidato sólo tras una decisión transversal. Cada variable debe tener un único significado, defaults conscientes según desarrollo/producción y errores críticos no deben ocultarse con fallbacks peligrosos.
 
