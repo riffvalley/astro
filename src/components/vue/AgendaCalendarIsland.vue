@@ -7,7 +7,6 @@ import AgendaDayDialog from '../../features/agenda/components/AgendaDayDialog.vu
 import AgendaFilterDialog from '../../features/agenda/components/AgendaFilterDialog.vue';
 import type {
   CalendarEvent,
-  MapShape,
   RegionCalendar,
   SpainMap,
 } from '../../features/agenda/model/agenda.types';

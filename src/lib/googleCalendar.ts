@@ -10,8 +10,6 @@ const CALENDAR_API_BASE = 'https://www.googleapis.com/calendar/v3/calendars';
 // de Agenda sin multiplicarse por el número de calendarios.
 export const GOOGLE_CALENDAR_REQUEST_TIMEOUT_MS = 5_000;
 
-export type { CalendarEvent, RegionCalendar } from '../features/agenda/model/agenda.types';
-
 interface GoogleEventDate {
   date?: string;
   dateTime?: string;
