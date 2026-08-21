@@ -60,7 +60,7 @@ function queueHttpsResponse(status: number, body: string, contentType = 'applica
 // declarados arriba con vi.mock() se mantienen activos.
 async function freshWordpressModule() {
   vi.resetModules();
-  return import('./wordpress');
+  return import('../api/wordpress');
 }
 
 // Avanza el tiempo simulado lo suficiente para que se resuelvan tanto los

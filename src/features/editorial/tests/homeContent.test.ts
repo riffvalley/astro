@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Category, PostDetail } from '../../../lib/wordpress';
+import type { Category, PostDetail } from '../api/wordpress';
 import { buildHomeEditorialContent } from '../homeContent';
 
 // Todas las fechas de los fixtures son fijas: la selección editorial sólo

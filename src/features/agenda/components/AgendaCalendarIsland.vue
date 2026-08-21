@@ -1,24 +1,24 @@
 <script setup lang="ts">
 import { computed, ref, watch, onMounted } from 'vue';
 
-import AgendaCalendarGrid from '../../features/agenda/components/AgendaCalendarGrid.vue';
-import AgendaCalendarToolbar from '../../features/agenda/components/AgendaCalendarToolbar.vue';
-import AgendaDayDialog from '../../features/agenda/components/AgendaDayDialog.vue';
-import AgendaFilterDialog from '../../features/agenda/components/AgendaFilterDialog.vue';
+import AgendaCalendarGrid from './AgendaCalendarGrid.vue';
+import AgendaCalendarToolbar from './AgendaCalendarToolbar.vue';
+import AgendaDayDialog from './AgendaDayDialog.vue';
+import AgendaFilterDialog from './AgendaFilterDialog.vue';
 import type {
   CalendarEvent,
   RegionCalendar,
   SpainMap,
-} from '../../features/agenda/model/agenda.types';
-import { fetchAgendaMap } from '../../features/agenda/api/agendaClient';
-import { useAgendaMonthEvents } from '../../features/agenda/composables/useAgendaMonthEvents';
-import { buildCalendarGrid } from '../../features/agenda/utils/calendarGrid';
+} from '../model/agenda.types';
+import { fetchAgendaMap } from '../api/agendaClient';
+import { useAgendaMonthEvents } from '../composables/useAgendaMonthEvents';
+import { buildCalendarGrid } from '../utils/calendarGrid';
 import {
   filterEventsByCalendarNames,
   groupEventsByCalendar,
-} from '../../features/agenda/utils/eventDerivations';
-import { eventDateKey } from '../../features/agenda/utils/eventDateKey';
-import { groupEventsByDay } from '../../features/agenda/utils/eventGrouping';
+} from '../utils/eventDerivations';
+import { eventDateKey } from '../utils/eventDateKey';
+import { groupEventsByDay } from '../utils/eventGrouping';
 
 const props = withDefaults(
   defineProps<{

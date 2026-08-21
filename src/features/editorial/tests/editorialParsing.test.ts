@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { extractHighlightedBands, extractReviewScore } from './editorialParsing';
+import { extractHighlightedBands, extractReviewScore } from '../utils/editorialParsing';
 
 describe('extractReviewScore', () => {
   it('extracts the decimal score from the supported review markup', () => {

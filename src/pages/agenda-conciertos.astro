@@ -2,11 +2,11 @@
 export const prerender = false;
 
 import Layout from '../layouts/Layout.astro';
-import AgendaCalendarIsland from '../components/vue/AgendaCalendarIsland.vue';
-import GoogleCalendarSubscribe from '../components/GoogleCalendarSubscribe.astro';
-import { fetchRegionEvents } from '../lib/googleCalendar';
-import { buildSpainMap } from '../lib/spainMap';
-import { calendars } from '../lib/agendaCalendars';
+import AgendaCalendarIsland from '../features/agenda/components/AgendaCalendarIsland.vue';
+import GoogleCalendarSubscribe from '../features/agenda/components/GoogleCalendarSubscribe.astro';
+import { fetchRegionEvents } from '../features/agenda/server/googleCalendar';
+import { buildSpainMap } from '../features/agenda/server/spainMap';
+import { calendars } from '../features/agenda/model/agendaCalendars';
 
 const today = new Date();
 const url = Astro.url;

@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
-import MonthYearPicker from '../../shared/components/MonthYearPicker.vue';
-import ReleaseGroup from '../../shared/components/ReleaseGroup.vue';
-import SearchableCombobox from '../../features/releases/components/SearchableCombobox.vue';
-import DiscRow from '../../features/releases/components/DiscRow.vue';
-import DiscModal from '../../features/releases/components/DiscModal.vue';
-import { DATA_START_YEAR, fetchFilterOptions, fetchMonth } from '../../features/releases/api/discsClient';
-import type { Disc, DiscDateGroup, FilterOption } from '../../features/releases/model/disc.types';
-import { formatDateLong } from '../../shared/utils/formatDateLong';
-import { pickDefaultOpenIndex } from '../../features/releases/utils/pickDefaultOpenIndex';
+import MonthYearPicker from '../../../shared/components/MonthYearPicker.vue';
+import ReleaseGroup from '../../../shared/components/ReleaseGroup.vue';
+import SearchableCombobox from './SearchableCombobox.vue';
+import DiscRow from './DiscRow.vue';
+import DiscModal from './DiscModal.vue';
+import { DATA_START_YEAR, fetchFilterOptions, fetchMonth } from '../api/discsClient';
+import type { Disc, DiscDateGroup, FilterOption } from '../model/disc.types';
+import { formatDateLong } from '../../../shared/utils/formatDateLong';
+import { pickDefaultOpenIndex } from '../utils/pickDefaultOpenIndex';
 
 const today = new Date();
 const viewMonth = ref(today.getMonth()); // 0-indexado

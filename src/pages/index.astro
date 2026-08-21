@@ -8,11 +8,11 @@ import RedactoresGrid from '../components/RedactoresGrid.astro';
 import SpotifyJukebox from '../components/SpotifyJukebox.astro';
 import InstagramGridIsland from '../components/vue/InstagramGridIsland.vue';
 import TelegramGridIsland from '../components/vue/TelegramGridIsland.vue';
-import AgendaCalendarIsland from '../components/vue/AgendaCalendarIsland.vue';
-import { getAllPosts, getCategories } from '../lib/wordpress';
+import AgendaCalendarIsland from '../features/agenda/components/AgendaCalendarIsland.vue';
+import { getAllPosts, getCategories } from '../features/editorial/api/wordpress';
 import { getRedactores } from '../features/redactores/redactores';
 import { buildHomeEditorialContent } from '../features/editorial';
-import { calendars as agendaCalendars } from '../lib/agendaCalendars';
+import { calendars as agendaCalendars } from '../features/agenda/model/agendaCalendars';
 
 const [posts, categories, redactores] = await Promise.all([getAllPosts(), getCategories(), getRedactores()]);
 

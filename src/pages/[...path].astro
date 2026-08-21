@@ -1,8 +1,8 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import PostsGallery from '../components/PostsGallery.astro';
-import { getAllPosts, getCategories, getPages } from '../lib/wordpress';
-import type { PostDetail, Category, Page } from '../lib/wordpress';
+import { getAllPosts, getCategories, getPages } from '../features/editorial/api/wordpress';
+import type { PostDetail, Category, Page } from '../features/editorial/api/wordpress';
 
 export async function getStaticPaths() {
   const [posts, categories, pages] = await Promise.all([

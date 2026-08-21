@@ -3,7 +3,7 @@
 // demanda, ver agenda-conciertos.astro) — la API key nunca llega al
 // navegador.
 
-import type { CalendarEvent, RegionCalendar } from '../features/agenda/model/agenda.types';
+import type { CalendarEvent, RegionCalendar } from '../model/agenda.types';
 
 const CALENDAR_API_BASE = 'https://www.googleapis.com/calendar/v3/calendars';
 // Las 19 fuentes se consultan en paralelo: este límite acota la espera total

@@ -1,4 +1,4 @@
-import { fetchGraphQL, readDevCache, writeDevCache } from './wordpressClient';
+import { fetchGraphQL, readDevCache, writeDevCache } from '../../../lib/wordpressClient';
 
 function stripGenerator(fullHead: string): string {
   return fullHead.replace(/<meta name="generator"[^>]*>/gi, '');
