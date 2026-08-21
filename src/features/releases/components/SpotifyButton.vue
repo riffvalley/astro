@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { SPOTIFY_ICON_PATH, spotifySearchUrl } from '../../lib/spotify';
+import { SPOTIFY_ICON_PATH, spotifySearchUrl } from '../../../lib/spotify';
 
 const props = withDefaults(defineProps<{
   artistName?: string;

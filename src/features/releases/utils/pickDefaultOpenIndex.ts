@@ -1,4 +1,4 @@
-import type { DiscDateGroup } from '../../../lib/discs';
+import type { DiscDateGroup } from '../model/disc.types';
 
 function pad(n: number) {
   return String(n).padStart(2, '0');
