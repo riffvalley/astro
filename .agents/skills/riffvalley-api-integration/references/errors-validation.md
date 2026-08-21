@@ -16,7 +16,7 @@ Valida query params, body, filtros, IDs, URLs, años y meses en el borde. No asu
 
 Los fetch desde Islands deben comunicar al menos `idle`, `loading`, `success`, `empty` y `error`; cuando sea relevante, `retry`, `stale` o `cancelled`. El adaptador de feature debe encapsular status/proveedor cuando ello evita que cada componente reinvente la política, pero evita wrappers triviales.
 
-Las islands actuales de lanzamientos, novedades nacionales e Instagram/Telegram ya representan loading, error, retry y/o empty. Al cambiar filtros o paginación rápidamente, añade protección contra respuestas obsoletas si la interacción lo permite.
+Las islands actuales de lanzamientos, novedades nacionales y los tres feeds de `features/social/` (Instagram, Telegram, TikTok) ya representan loading, error, retry y/o empty. Al cambiar filtros o paginación rápidamente, añade protección contra respuestas obsoletas si la interacción lo permite.
 
 ## Anti-patrones
 

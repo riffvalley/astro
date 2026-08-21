@@ -36,11 +36,11 @@ Para una island que refresca datos, separa con claridad `initialData` de su clie
 
 No uses un umbral de líneas. Revisa una island cuando reúne varias responsabilidades independientes: fetching, transformación, lógica de fechas, navegación, filtros, varios diálogos, múltiples bloques visuales y coordinación compleja de estado.
 
-`AgendaCalendarIsland.vue` es el ejemplo actual: maneja carga de eventos, mapa, selección de calendarios, navegación de mes, grid, intensidad, filtros y diálogo de día. Es una señal para evaluar límites al tocarla, no una orden de refactorizarla ahora.
+`AgendaCalendarIsland.vue` es el ejemplo actual de una island que ya delegó su complejidad en vez de concentrarla: la carga de eventos vive en el composable `useAgendaMonthEvents`, el grid y las agrupaciones en funciones puras (`utils/calendarGrid.ts`, `utils/eventGrouping.ts`, `utils/eventDerivations.ts`), y la presentación en componentes hijos (`AgendaCalendarGrid`, `AgendaCalendarToolbar`, `AgendaDayDialog`, `AgendaFilterDialog`). La propia island queda como coordinadora — sigue siendo la señal a revisar primero cuando una nueva responsabilidad quiera entrar ahí, no una orden de seguir extrayendo.
 
 Extracciones posibles, sólo cuando reducen complejidad real:
 
-- un composable como `useAgendaFilters`, `useCalendarGrid` o `useReleaseFilters` para estado reactivo cohesivo;
+- un composable para estado reactivo cohesivo, del estilo de `useAgendaMonthEvents`;
 - componentes hijos para bloques visuales que reciben props y emiten eventos claros;
 - un adaptador API para fetch y normalización;
 - `model/types` y funciones puras para transformaciones, fechas y agrupaciones.

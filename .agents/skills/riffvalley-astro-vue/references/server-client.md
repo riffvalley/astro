@@ -12,15 +12,16 @@ No importes ni serialices hacia Vue:
 - llamadas que dependan de secretos;
 - clientes o configuración de infraestructura completos.
 
-El uso actual de `src/lib/wordpress.ts` ilustra código server-only: importa `node:https`, `node:fs`, `node:path` y usa caché de desarrollo. Nunca debe llegar a imports de Vue.
+`lib/wordpressClient.ts` ilustra código server-only vigente: importa `node:https`, `node:fs`, `node:path` y usa caché de desarrollo. Nunca debe llegar a imports de Vue.
 
 ## Patrones seguros para datos dinámicos
 
-- Una ruta SSR como `agenda-conciertos.astro` puede usar `GOOGLE_CALENDAR_API_KEY`, pedir Google Calendar y pasar al calendario Vue únicamente eventos y configuración serializable.
-- Una página estática que necesita refresco puede hidratar una island y hacer que ésta llame a un endpoint Astro SSR. La home usa `/api/agenda-resumen.json` para que la clave de Google permanezca en servidor.
-- Un endpoint puede devolver sólo el modelo necesario para el navegador y aplicar cache HTTP según la frescura del dato; `/api/redactor-reels.json` y `/api/agenda-resumen.json` son ejemplos de frontera HTTP bajo demanda.
-
-`HOST_API` es una excepción intencional: `astro.config.mjs` lo expone al bundle cliente mediante `envPrefix` para los endpoints públicos del backend propio. No significa que `WP_BASE_URL`, claves de Google u otras variables se puedan exponer; revisa cada variable antes de usarla en Vue.
+Los patrones (ruta SSR con secreto de servidor, island que refresca vía
+endpoint público, endpoint con cache HTTP acotada) y sus ejemplos actuales
+están en [astro-vs-vue.md](astro-vs-vue.md) → "Fetch: dónde ocurre" — no se
+repiten aquí. `HOST_API` es la única excepción a "nunca serialices
+infraestructura hacia Vue"; qué variables existen hoy y qué proveedores la
+consumen es política de `riffvalley-api-integration`, no de esta skill.
 
 ## Evitar fugas y trabajo duplicado
 

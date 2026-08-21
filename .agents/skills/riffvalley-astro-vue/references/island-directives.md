@@ -20,7 +20,7 @@ Usa la hidratación menos agresiva que mantenga una experiencia correcta. La ele
 
 ## `client:visible`
 
-**Úsala** para features interactivas fuera de la primera vista que pueden activarse al acercarse al viewport. La home la usa correctamente para el mini calendario y los feeds sociales: evita hidratar agenda, Instagram y Telegram si el visitante no llega a esas secciones.
+**Úsala** para features interactivas fuera de la primera vista que pueden activarse al acercarse al viewport. La home la usa correctamente para el mini calendario y los tres feeds de `features/social/` (Instagram, Telegram, TikTok): evita hidratar agenda o cualquiera de los tres si el visitante no llega a esas secciones.
 
 **Evítala** si el usuario necesita interacción instantánea antes de que el observador la active o si un estado compartido con una isla ya activa exige coordinación inmediata.
 

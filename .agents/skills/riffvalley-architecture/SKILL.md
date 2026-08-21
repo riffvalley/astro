@@ -5,38 +5,81 @@ description: Define o aplica la arquitectura modular orientada a features de Rif
 
 # Arquitectura de Riff Valley
 
-Usa esta skill antes de crear, mover o extraer código en `src/`. Riff Valley es un sitio Astro 6 estático con islas Vue 3, TypeScript, WordPress headless mediante WPGraphQL, Google Calendar y un backend propio. Netlify adapta las rutas y endpoints que requieren SSR bajo demanda.
+Guardrails operativos de ownership, ubicación y dirección de dependencias.
+Para el mapa completo de `src/` (qué vive en `pages/`, `app/`, `features/`,
+`shared/`, `lib/`, `components/`) y sus ejemplos reales, ver
+[`docs/technical/architecture.md`](../../../docs/technical/architecture.md). Para decidir si
+algo es una feature nueva, extiende una existente o va a `shared`, ver
+[`docs/technical/feature-development.md`](../../../docs/technical/feature-development.md) y
+`riffvalley-feature-module` — esta skill no repite esa decisión. La
+precedencia general entre skills está definida en `riffvalley-refactoring`.
 
-La precedencia general entre skills está definida en `riffvalley-refactoring`.
-
-El destino es modular y orientado a features, sin imponer Clean Architecture por ceremonia:
+## Dirección de dependencias
 
 ```text
-src/
-├── app/
-├── features/
-├── shared/
-├── pages/
-└── styles/
+pages ──→ app / features / shared / lib
+app   ──→ features / shared / lib
+features ──→ shared / lib
 ```
 
-No reorganices código existente sólo para satisfacer esta forma. Haz cambios incrementales, dentro del alcance de la tarea, y conserva el comportamiento de Astro estático, las islas hidratadas y los endpoints SSR.
+Prohibido siempre, sin excepción:
 
-## Flujo
+- `shared → features` (tampoco `→ app` ni `→ pages`).
+- `lib → features`.
+- `feature A → internals de feature B` (solo su `index.ts` público, y solo
+  cuando exista una relación de producto explícita).
+- Reglas/modelos puros de dominio dependiendo de componentes, Astro o Vue
+  — la UI depende de la regla, nunca al revés.
 
-1. Identifica el dominio y el runtime: build estático/servidor Astro, endpoint SSR o navegador dentro de una isla Vue.
-2. Consulta [boundaries.md](references/boundaries.md) para ubicar el código y decidir si nace una feature.
-3. Consulta [dependency-rules.md](references/dependency-rules.md) antes de crear imports entre módulos o exponer una API.
-4. Para extraer o ampliar un dominio, sigue [feature-structure.md](references/feature-structure.md).
-5. Para una reorganización o revisión, busca primero los casos relevantes en [anti-patterns.md](references/anti-patterns.md).
+Romper cualquiera de estas cuatro no es un detalle de estilo: invierte de
+qué depende qué, y un cambio en un módulo "de abajo" puede romper todo lo
+que se apoya en él silenciosamente.
 
-La página Astro es el composition root de su ruta: coordina layout, datos de servidor e islas; no absorbe reglas de negocio. Las islas Vue presentan e interactúan; sus componentes no deben depender de DTOs de WordPress, Google Calendar o el backend de Riff Valley.
+## Composición frente a lógica de producto
+
+**Componer** es elegir qué se muestra, en qué orden y con qué API pública
+de qué features — eso vive en `pages/`, `app/` o en la propia composición
+de una Island.
+
+**Es lógica de producto** cualquier regla que calcule, normalice,
+seleccione o valide algo del dominio — agrupar, paginar, mapear una
+respuesta externa, decidir qué contenido destaca. Eso vive dentro de la
+feature dueña, nunca en una página, en un layout o en el shell de `app/`.
+
+## DTO externo → modelo interno
+
+Un componente nunca debe conocer la forma cruda de un proveedor externo;
+recibe el modelo que su feature ya normalizó:
+
+```ts
+// Mal: el componente aprende la forma de WPGraphQL
+defineProps<{ post: { featuredImage: { node: { sourceUrl: string } } | null } }>();
+
+// Bien: el adaptador de la feature ya normalizó el dato
+defineProps<{ post: { title: string; imageUrl: string | null } }>();
+```
 
 ## Checklist antes de crear o mover un archivo
 
 - ¿A qué dominio pertenece?
-- ¿Es realmente compartido?
-- ¿Qué dependencias introduce?
-- ¿Rompe la dirección de dependencias?
-- ¿Se puede resolver dentro de la feature actual?
-- ¿Estamos creando abstracción por necesidad o por anticipación?
+- ¿Es realmente compartido, con reutilización demostrada, o solo lo
+  parece?
+- ¿Qué dependencias introduce y en qué dirección?
+- ¿Rompe alguna de las cuatro prohibiciones de arriba?
+- ¿Se puede resolver dentro de la feature actual en vez de moverlo?
+- ¿Es una abstracción por necesidad real o por anticipación?
+
+## Anti-patrones operativos
+
+- **`lib` como cajón de sastre** — cualquier lógica que conozca un
+  dominio de producto (no solo transporte/infraestructura técnica)
+  colándose en `lib/` porque "no encaja en ningún otro sitio". Acércala a
+  la feature dueña.
+- **Imports profundos entre features** — una feature (o una página)
+  importando rutas internas de otra en vez de componer desde
+  `pages`/`app` o pasar por un `index.ts` público. Nunca hagas que una
+  feature conozca la estructura interna de otra.
+- **Lógica de producto filtrándose a una página o a `app/`** — una
+  ruta o el shell global calculando/normalizando/seleccionando algo del
+  dominio en vez de delegarlo a la feature dueña (ver
+  "Composición frente a lógica de producto" arriba).

@@ -5,13 +5,16 @@ description: Define o aplica la estrategia de testing de Riff Valley al crear te
 
 # Testing de Riff Valley
 
-El objetivo es minimizar regresiones con el menor coste razonable, priorizando **riesgo × complejidad × probabilidad de regresión**, no líneas, número de archivos ni porcentaje global. **Test behavior and contracts, not implementation trivia.**
+Minimiza regresiones al menor coste razonable: **riesgo × complejidad ×
+probabilidad de regresión**, no líneas, archivos ni porcentaje de
+cobertura. Test behavior and contracts, not implementation trivia. Para
+qué testear, prioridades y ejemplos reales, ver
+[`docs/technical/testing.md`](../../../docs/technical/testing.md); para characterization
+dentro de un slice de refactor, [`docs/technical/refactoring.md`](../../../docs/technical/refactoring.md).
+Esta skill decide solo el **nivel** (unit/component/integration/E2E) y
+**cómo aislar dependencias** — no qué priorizar, eso ya está en los docs.
 
-Esta skill decide qué comprobar, por qué y a qué nivel. `riffvalley-architecture`, `riffvalley-feature-module`, `riffvalley-astro-vue` y `riffvalley-api-integration` mantienen la autoridad sobre las políticas que los tests verifican; no las sustituye. La precedencia general está definida en `riffvalley-refactoring`.
-
-`vue-testing-best-practices` aporta implementación técnica de testing Vue. Sus recomendaciones no autorizan instalar dependencias ni configurar runners, y no deciden la estrategia ni qué merece ser probado: esas decisiones pertenecen a `riffvalley-testing`. Para APIs o sintaxis de Vitest, Vue Test Utils o Playwright, consulta la skill externa o su documentación cuando el tooling exista.
-
-## Decisión
+## Árbol de decisión
 
 ```text
 ¿Qué comportamiento protegemos?
@@ -36,22 +39,52 @@ Esta skill decide qué comprobar, por qué y a qué nivel. `riffvalley-architect
    considerar E2E
 ```
 
-La pirámide (muchos unit, algunos integración/componente y pocos E2E) es una guía de coste y confianza, no una cuota matemática.
+La pirámide (muchos unit, algunos integración/componente y pocos E2E) es
+una guía de coste y confianza, no una cuota matemática.
 
-## Workflow
+## Mocking: ¿frontera real o implementación?
 
-1. Nombra el comportamiento, contrato, edge case o bug que protegerás. Consulta [test-priorities.md](references/test-priorities.md).
-2. Elige el nivel más barato que lo comprueba; extrae lógica pura sólo si una tarea de producto/refactor lo justifica. Consulta [unit-and-domain.md](references/unit-and-domain.md).
-3. Para UI, API o asincronía, prueba estados y efectos observables, no internals. Consulta [component-testing.md](references/component-testing.md) y [api-testing.md](references/api-testing.md).
-4. Reserva E2E y smoke para journeys que cruzan capas. Consulta [e2e.md](references/e2e.md).
-5. Antes de un refactor complejo, protege el comportamiento existente mediante characterization tests. Consulta [refactor-safety.md](references/refactor-safety.md).
+Mockea fronteras reales — HTTP, `Date`/timers, `localStorage`, browser
+APIs. No mockees funciones privadas, composables propios o hijos solo
+para facilitar el test: si tienes que simular tu propio código para
+probarlo, estás probando la simulación, no el comportamiento. Ante la
+duda, pregunta explícitamente "¿esto es una frontera real, o soy yo
+mismo?".
+
+No dependas del reloj, timezone o red reales cuando eso vuelva el test
+frágil: fixtures deterministas, fechas explícitas, fetch/timers
+simulados. Evita sleeps arbitrarios (espera una condición observable) y
+selectores E2E/CSS frágiles (prefiere roles, labels y texto accesible).
+
+## Characterization
+
+Antes de refactorizar lógica compleja sin red de seguridad — solo cuando
+el riesgo sea real, no por rutina —, protege su comportamiento actual con
+tests (nivel y alcance: `riffvalley-refactoring` / `docs/technical/refactoring.md`).
+
+Ante un bug ya en producción, el ciclo proporcional es: reproducir → test
+que falla (cuando aporte valor) → corregir → test verde. El test documenta
+el comportamiento correcto y evita que el bug vuelva.
+
+## Tooling no instalado
+
+No hay infraestructura general de component mounting ni E2E en este
+repo. No la instales por defecto — añádela solo cuando un riesgo real de
+interacción DOM lo justifique (criterio y lista de qué no añadir "porque
+falta": `docs/technical/testing.md`).
+
+`vue-testing-best-practices` y Playwright aportan sintaxis e
+implementación técnica cuando el tooling exista. Ninguna de las dos
+decide la estrategia ni qué merece probarse — esas decisiones son de
+esta skill; consúltalas solo para APIs/sintaxis una vez aprobado el qué
+y el nivel.
 
 ## Checklist
 
-- ¿Qué regresión detectaría este test y cuál es el nivel más barato que puede hacerlo?
+- ¿Qué regresión detectaría este test y cuál es el nivel más barato que
+  puede hacerlo?
 - ¿Comprueba comportamiento observable, no implementación?
-- ¿Cubre un edge case real, error, contrato o bug conocido?
-- ¿Mockea una frontera real (HTTP, reloj, navegador), no el propio código bajo prueba?
-- ¿El reloj/timezone y los fixtures mínimos son deterministas?
-- ¿Duplica cobertura sin valor frente a unit, componente o E2E?
+- ¿Mockea una frontera real, no el propio código bajo prueba?
+- ¿El reloj/timezone/red y los fixtures son deterministas?
+- ¿Duplica cobertura sin valor frente a otro nivel ya existente?
 - ¿Seguirá teniendo sentido tras un refactor interno?

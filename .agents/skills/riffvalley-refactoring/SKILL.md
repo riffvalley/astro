@@ -7,7 +7,17 @@ description: Orquesta refactors incrementales de Riff Valley al reorganizar cód
 
 > Refactor by small, behavior-preserving slices.
 
-Un refactor cambia estructura interna y mantiene comportamiento observable. Un fix o feature cambia comportamiento intencionadamente. Si una tarea incluye ambos, identifícalos y sepáralos en slices cuando sea razonable.
+Un refactor cambia estructura interna y mantiene comportamiento observable.
+Un fix o feature cambia comportamiento intencionadamente. Si una tarea
+incluye ambos, identifícalos y sepáralos en slices.
+
+Para el flujo completo (AUDIT → CHARACTERIZATION → BOUNDARY → SMALL SLICE
+→ VERIFY → RE-EVALUATE → PR), su Definition of Done y ejemplos reales, ver
+[`docs/technical/refactoring.md`](../../../docs/technical/refactoring.md); para límites y
+dirección de dependencias, [`docs/technical/architecture.md`](../../../docs/technical/architecture.md);
+para qué proteger y a qué nivel, [`docs/technical/testing.md`](../../../docs/technical/testing.md).
+Esta skill no los resume: coordina autoridad entre skills y guarda los
+guardrails operativos que ningún doc cubre.
 
 Esta skill coordina; no sustituye a las políticas especializadas:
 
@@ -42,39 +52,49 @@ Hallmark sólo tiene autoridad en diseño, rediseño, auditoría visual, UX/UI v
 
 Los criterios cuantitativos o automáticos de `vue-best-practices` para dividir componentes, crear composables o extraer código son señales de inspección, no órdenes arquitectónicas. Riff Valley decide si se extrae, el alcance, el ownership y el slice; la skill externa explica cómo implementarlo correctamente una vez aprobado.
 
-## Workflow obligatorio
+## Guardrails durante un slice
 
-```text
-INSPECT → DEFINE BEHAVIOR → DEFINE BOUNDARY → ASSESS RISK → PROTECT
-        → CHANGE ONE RESPONSIBILITY → VERIFY → REVIEW DIFF → STOP / NEXT SLICE
-```
+- Preserva comportamiento por defecto; separa siempre estructura de
+  cambio funcional, incluso si ambos parecen inevitables juntos.
+- Si aparece un bug o deuda real durante el refactor, regístralo — no lo
+  corrijas dentro del mismo slice salvo que el usuario lo pida o sea
+  trivial, inseparable y necesario para terminar con seguridad.
+- No afirmes que no hubo cambio de comportamiento sin evidencia. Informa
+  qué se verificó (p. ej. "tests relevantes y typecheck pasan; no se
+  identificó un cambio intencionado").
+- Characterization tests antes de mover lógica compleja sin red de
+  seguridad, solo cuando el riesgo real lo justifique — no por rutina
+  (nivel y alcance: `riffvalley-testing`).
+- Cambia una responsabilidad o frontera por slice; no mezcles
+  reorganización, corrección de bugs y features nuevas en el mismo
+  cambio. El tamaño de un slice es conceptual: no lo fijes por líneas,
+  archivos, minutos o commits.
+- Verifica con el check más barato capaz de detectar el riesgo antes de
+  seguir al siguiente slice (niveles y cuándo omitir cada uno:
+  `docs/technical/refactoring.md` → Verify).
+- Tras cada slice decide explícitamente: continuar, parar, cambiar de
+  frontera, o declarar DONE. Nunca sigas refactorizando código vecino
+  solo por simetría o "ya que estamos", sin evidencia nueva que lo pida.
+- Mover archivos no es lo mismo que mejorar ownership o dirección de
+  dependencias — revisa qué cambia realmente antes de dar un movimiento
+  por bueno.
 
-Sigue [workflow.md](references/workflow.md). Para dimensionar un slice y saber cuándo parar, consulta [slice-sizing.md](references/slice-sizing.md). Para separar estructura, bugs y comportamiento, consulta [behavior-preservation.md](references/behavior-preservation.md).
+## Migraciones seguras
 
-Cuando muevas código, imports, APIs públicas o fronteras de feature, sigue [migrations.md](references/migrations.md). Elige checks proporcionales con [verification.md](references/verification.md). Antes de ampliar el alcance, revisa [anti-patterns.md](references/anti-patterns.md).
+- Preserva la API existente si es posible; actualiza solo los
+  consumidores necesarios, sin renombrar a la vez salvo necesidad.
+- Comprueba imports y ciclos tras mover código; verifica de forma
+  proporcional al riesgo.
+- Elimina la ruta antigua solo después de migrar sus consumidores.
+- Un re-export o compatibility layer transitorio es válido solo con
+  propósito y caducidad explícitos — nunca como una segunda API
+  permanente accidental.
 
-## Checklist
+## Prohibido salvo petición o necesidad explicada
 
-Antes de editar:
-
-- ¿Cuál es el problema estructural y qué comportamiento debe permanecer?
-- ¿Qué archivos, consumidores, dependencias y side effects están implicados?
-- ¿Qué skill gobierna cada decisión?
-- ¿Cuál es el riesgo y existe protección suficiente?
-- ¿Cuál es el slice mínimo coherente?
-
-Durante:
-
-- ¿Seguimos dentro del alcance y preservamos comportamiento?
-- ¿Cambiamos una responsabilidad principal?
-- ¿Estamos creando abstracciones o tocando código no relacionado?
-
-Después:
-
-- ¿El objetivo concreto está cumplido y los checks relevantes pasan?
-- ¿La dirección de dependencias sigue válida?
-- ¿El diff tiene una única intención comprensible?
-- ¿Una mejora descubierta debe quedar como otro slice?
-- ¿Debemos parar aquí?
-
-No hagas commits, push, branches ni PRs salvo petición explícita.
+- rediseñar UI, cambiar CSS o copy;
+- introducir features, estado global o Pinia;
+- actualizar dependencias, framework o tooling;
+- cambiar API externa, backend, cache, retry, SEO o contenido editorial;
+- formatear todo, hacer renombrados masivos o reescribir código vecino;
+- crear commits, push, branches o PRs.
