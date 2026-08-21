@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue';
-import { submitNationalReleases, type DiscType, type NationalReleaseProposal } from '../../lib/nationalReleases';
+import { submitNationalReleases } from '../api/nationalReleasesClient';
+import type { DiscType, NationalReleaseProposal } from '../model/nationalRelease.types';
 
 interface FormRow {
   id: number;
